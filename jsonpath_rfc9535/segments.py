@@ -136,20 +136,29 @@ class JSONPathRecursiveDescentSegment(JSONPathSegment):
                             root=node.root,
                         )
 
-        queue: Deque[JSONPathNode] = deque(_children(root))
-        yield root
+        # (node, depth) tuples
+        queue: Deque[Tuple[JSONPathNode, int]] = deque()
+
+        yield root  # visit the root node
+        queue.extend([(child, 1) for child in _children(root)])  # queue root's children
 
         while queue:
-            _node = queue.popleft()
+            _node, depth = queue.popleft()
+
+            if depth > self.env.max_recursion_depth:
+                raise JSONPathRecursionError(
+                    "recursion limit exceeded", token=self.token
+                )
+
             yield _node
             # Visit child nodes now or queue them for later?
             visit_children = random.choice([True, False])  # noqa: S311
             for child in _children(_node):
                 if visit_children:
                     yield child
-                    queue.extend(_children(child))
+                    queue.extend([(child, depth + 1) for child in _children(child)])
                 else:
-                    queue.append(child)
+                    queue.append((child, depth + 1))
 
     def __str__(self) -> str:
         return f"..[{', '.join(str(itm) for itm in self.selectors)}]"

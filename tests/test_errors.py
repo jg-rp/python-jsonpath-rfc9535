@@ -64,11 +64,39 @@ def test_low_recursion_limit() -> None:
         env.find(query, data)
 
 
+def test_recursive_data_nondeterministic() -> None:
+    class MockEnv(JSONPathEnvironment):
+        nondeterministic = True
+
+    env = MockEnv()
+    query = "$..a"
+    arr: List[Any] = []
+    data: Any = {"foo": arr}
+    arr.append(data)
+
+    with pytest.raises(JSONPathRecursionError):
+        env.find(query, data)
+
+
+def test_low_recursion_limit_nondeterministic() -> None:
+    class MockEnv(JSONPathEnvironment):
+        nondeterministic = True
+        max_recursion_depth = 3
+
+    env = MockEnv()
+    query = "$..a"
+    data = {"foo": [{"bar": [1, 2, 3]}]}
+
+    with pytest.raises(JSONPathRecursionError):
+        env.find(query, data)
+
+
 class FilterLiteralTestCase(NamedTuple):
     description: str
     query: str
 
 
+# TODO: add these to the CTS?
 BAD_FILTER_LITERAL_TEST_CASES: List[FilterLiteralTestCase] = [
     FilterLiteralTestCase("just true", "$[?true]"),
     FilterLiteralTestCase("just string", "$[?'foo']"),
