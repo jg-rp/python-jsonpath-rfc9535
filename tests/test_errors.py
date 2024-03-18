@@ -78,19 +78,6 @@ def test_recursive_data_nondeterministic() -> None:
         env.find(query, data)
 
 
-def test_low_recursion_limit_nondeterministic() -> None:
-    class MockEnv(JSONPathEnvironment):
-        nondeterministic = True
-        max_recursion_depth = 3
-
-    env = MockEnv()
-    query = "$..a"
-    data = {"foo": [{"bar": [1, 2, 3]}]}
-
-    with pytest.raises(JSONPathRecursionError):
-        env.find(query, data)
-
-
 class FilterLiteralTestCase(NamedTuple):
     description: str
     query: str

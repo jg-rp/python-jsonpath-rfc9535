@@ -76,7 +76,7 @@ class JSONPathRecursiveDescentSegment(JSONPathSegment):
         # XXX: This feels like a bit of a hack.
         visitor = (
             self._nondeterministic_visit
-            if self.env.nondeterministic and random.random() < 0.2  # noqa: S311, PLR2004
+            if self.env.nondeterministic and random.random() < 0.8  # noqa: S311, PLR2004
             else self._visit
         )
 
@@ -86,7 +86,7 @@ class JSONPathRecursiveDescentSegment(JSONPathSegment):
                     yield from selector.resolve(_node)
 
     def _visit(self, node: JSONPathNode, depth: int = 1) -> Iterable[JSONPathNode]:
-        """Pre order node traversal."""
+        """Depth-first, pre-order node traversal."""
         if depth > self.env.max_recursion_depth:
             raise JSONPathRecursionError("recursion limit exceeded", token=self.token)
 
@@ -145,18 +145,20 @@ class JSONPathRecursiveDescentSegment(JSONPathSegment):
         while queue:
             _node, depth = queue.popleft()
 
-            if depth > self.env.max_recursion_depth:
+            if depth >= self.env.max_recursion_depth:
                 raise JSONPathRecursionError(
                     "recursion limit exceeded", token=self.token
                 )
 
             yield _node
+
             # Visit child nodes now or queue them for later?
             visit_children = random.choice([True, False])  # noqa: S311
+
             for child in _children(_node):
                 if visit_children:
                     yield child
-                    queue.extend([(child, depth + 1) for child in _children(child)])
+                    queue.extend([(child, depth + 2) for child in _children(child)])
                 else:
                     queue.append((child, depth + 1))
 
