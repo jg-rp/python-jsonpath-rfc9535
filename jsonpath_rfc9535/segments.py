@@ -69,15 +69,8 @@ class JSONPathRecursiveDescentSegment(JSONPathSegment):
 
     def resolve(self, nodes: Iterable[JSONPathNode]) -> Iterable[JSONPathNode]:
         """Select descendants of each node in _nodes_."""
-        # The nondeterministic visitor never generates a pre order traversal, so we
-        # still use the deterministic visitor 20% of the time, to cover all
-        # permutations.
-        #
-        # XXX: This feels like a bit of a hack.
         visitor = (
-            self._nondeterministic_visit
-            if self.env.nondeterministic and random.random() < 0.8  # noqa: S311, PLR2004
-            else self._visit
+            self._nondeterministic_visit if self.env.nondeterministic else self._visit
         )
 
         for node in nodes:
@@ -121,20 +114,18 @@ class JSONPathRecursiveDescentSegment(JSONPathSegment):
                 items = list(node.value.items())
                 random.shuffle(items)
                 for name, val in items:
-                    if isinstance(val, (dict, list)):
-                        yield JSONPathNode(
-                            value=val,
-                            location=node.location + (name,),
-                            root=node.root,
-                        )
+                    yield JSONPathNode(
+                        value=val,
+                        location=node.location + (name,),
+                        root=node.root,
+                    )
             elif isinstance(node.value, list):
                 for i, element in enumerate(node.value):
-                    if isinstance(element, (dict, list)):
-                        yield JSONPathNode(
-                            value=element,
-                            location=node.location + (i,),
-                            root=node.root,
-                        )
+                    yield JSONPathNode(
+                        value=element,
+                        location=node.location + (i,),
+                        root=node.root,
+                    )
 
         # (node, depth) tuples
         queue: Deque[Tuple[JSONPathNode, int]] = deque()
@@ -143,22 +134,33 @@ class JSONPathRecursiveDescentSegment(JSONPathSegment):
         queue.extend([(child, 1) for child in _children(root)])  # queue root's children
 
         while queue:
-            _node, depth = queue.popleft()
+            node, depth = queue.popleft()
 
             if depth >= self.env.max_recursion_depth:
                 raise JSONPathRecursionError(
                     "recursion limit exceeded", token=self.token
                 )
 
-            yield _node
-
+            yield node
             # Visit child nodes now or queue them for later?
             visit_children = random.choice([True, False])  # noqa: S311
 
-            for child in _children(_node):
+            for child in _children(node):
                 if visit_children:
                     yield child
-                    queue.extend([(child, depth + 2) for child in _children(child)])
+                    # Randomly interleave grandchildren into queue
+                    grandchildren = [(child, depth + 2) for child in _children(child)]
+
+                    queue = deque(
+                        map(
+                            next,
+                            random.sample(
+                                [iter(queue)] * len(queue)
+                                + [iter(grandchildren)] * len(grandchildren),
+                                len(queue) + len(grandchildren),
+                            ),
+                        )
+                    )
                 else:
                     queue.append((child, depth + 1))
 

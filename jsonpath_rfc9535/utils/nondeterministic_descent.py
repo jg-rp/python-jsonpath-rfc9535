@@ -127,8 +127,8 @@ def nondeterministic_visit(root: AuxNode) -> Iterable[AuxNode]:
     use `pre_order_visit` in addition to `nondeterministic_visit` to get all
     permutations. Or use `all_perms()`.
     """
-    queue: Deque[AuxNode] = deque(root.children)
     yield root
+    queue: Deque[AuxNode] = deque(root.children)
 
     while queue:
         _node = queue.popleft()
@@ -138,7 +138,20 @@ def nondeterministic_visit(root: AuxNode) -> Iterable[AuxNode]:
         for child in _node.children:
             if visit_children:
                 yield child
-                queue.extend(child.children)
+
+                # Randomly interleave grandchildren into queue
+                grandchildren = child.children
+
+                queue = deque(
+                    map(
+                        next,
+                        random.sample(
+                            [iter(queue)] * len(queue)
+                            + [iter(grandchildren)] * len(grandchildren),
+                            len(queue) + len(grandchildren),
+                        ),
+                    )
+                )
             else:
                 queue.append(child)
 
@@ -146,5 +159,4 @@ def nondeterministic_visit(root: AuxNode) -> Iterable[AuxNode]:
 def all_perms(root: AuxNode) -> List[Tuple[AuxNode, ...]]:
     """Return a list of valid permutations for the auxiliary tree _root_."""
     perms = {tuple(nondeterministic_visit(root)) for _ in range(1000)}
-    perms.add(tuple(pre_order_visit(root)))
     return sorted(perms, key=lambda t: str(t))
