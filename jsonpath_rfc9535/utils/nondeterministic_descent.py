@@ -121,36 +121,32 @@ def breadth_first_visit(node: AuxNode) -> Iterable[AuxNode]:
 
 
 def nondeterministic_visit(root: AuxNode) -> Iterable[AuxNode]:
-    """Generate nodes rooted at _node_ from a nondeterministic traversal.
-
-    This tree visitor will never produce nodes in depth-first pre-order, so
-    use `pre_order_visit` in addition to `nondeterministic_visit` to get all
-    permutations. Or use `all_perms()`.
-    """
+    """Generate nodes rooted at _node_ from a nondeterministic traversal."""
     yield root
     queue: Deque[AuxNode] = deque(root.children)
 
     while queue:
         _node = queue.popleft()
         yield _node
-        # Visit child nodes now or queue them for later?
+        # Randomly choose to visit child nodes now or queue them for later?
         visit_children = random.choice([True, False])
         for child in _node.children:
             if visit_children:
                 yield child
 
-                # Randomly interleave grandchildren into queue
+                # Queue grandchildren by randomly interleaving them into the
+                # queue while maintaining queue and grandchild order.
                 grandchildren = child.children
 
                 queue = deque(
-                    map(
-                        next,
-                        random.sample(
+                    [
+                        next(n)
+                        for n in random.sample(
                             [iter(queue)] * len(queue)
                             + [iter(grandchildren)] * len(grandchildren),
                             len(queue) + len(grandchildren),
-                        ),
-                    )
+                        )
+                    ]
                 )
             else:
                 queue.append(child)

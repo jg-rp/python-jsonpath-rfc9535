@@ -107,59 +107,50 @@ class JSONPathRecursiveDescentSegment(JSONPathSegment):
     def _nondeterministic_visit(
         self,
         root: JSONPathNode,
-        _: int = 1,
+        depth: int = 1,
     ) -> Iterable[JSONPathNode]:
-        def _children(node: JSONPathNode) -> Iterable[JSONPathNode]:
-            if isinstance(node.value, dict):
-                items = list(node.value.items())
-                random.shuffle(items)
-                for name, val in items:
-                    yield JSONPathNode(
-                        value=val,
-                        location=node.location + (name,),
-                        root=node.root,
-                    )
-            elif isinstance(node.value, list):
-                for i, element in enumerate(node.value):
-                    yield JSONPathNode(
-                        value=element,
-                        location=node.location + (i,),
-                        root=node.root,
-                    )
-
+        """Nondeterministic node traversal."""
         # (node, depth) tuples
         queue: Deque[Tuple[JSONPathNode, int]] = deque()
 
-        yield root  # visit the root node
-        queue.extend([(child, 1) for child in _children(root)])  # queue root's children
+        # Visit the root node
+        yield root
+
+        # Queue root's children
+        queue.extend([(child, depth) for child in _nondeterministic_children(root)])
 
         while queue:
             node, depth = queue.popleft()
+            yield node
 
             if depth >= self.env.max_recursion_depth:
                 raise JSONPathRecursionError(
                     "recursion limit exceeded", token=self.token
                 )
 
-            yield node
-            # Visit child nodes now or queue them for later?
+            # Randomly choose to visit child nodes now or queue them for later?
             visit_children = random.choice([True, False])  # noqa: S311
 
-            for child in _children(node):
+            for child in _nondeterministic_children(node):
                 if visit_children:
                     yield child
-                    # Randomly interleave grandchildren into queue
-                    grandchildren = [(child, depth + 2) for child in _children(child)]
+
+                    # Queue grandchildren by randomly interleaving them into the
+                    # queue while maintaining queue and grandchild order.
+                    grandchildren = [
+                        (child, depth + 2)
+                        for child in _nondeterministic_children(child)
+                    ]
 
                     queue = deque(
-                        map(
-                            next,
-                            random.sample(
+                        [
+                            next(n)
+                            for n in random.sample(
                                 [iter(queue)] * len(queue)
                                 + [iter(grandchildren)] * len(grandchildren),
                                 len(queue) + len(grandchildren),
-                            ),
-                        )
+                            )
+                        ]
                     )
                 else:
                     queue.append((child, depth + 1))
@@ -176,3 +167,23 @@ class JSONPathRecursiveDescentSegment(JSONPathSegment):
 
     def __hash__(self) -> int:
         return hash(("..", self.selectors, self.token))
+
+
+def _nondeterministic_children(node: JSONPathNode) -> Iterable[JSONPathNode]:
+    """Yield children of _node_ with nondeterministic object/dict iteration."""
+    if isinstance(node.value, dict):
+        items = list(node.value.items())
+        random.shuffle(items)
+        for name, val in items:
+            yield JSONPathNode(
+                value=val,
+                location=node.location + (name,),
+                root=node.root,
+            )
+    elif isinstance(node.value, list):
+        for i, element in enumerate(node.value):
+            yield JSONPathNode(
+                value=element,
+                location=node.location + (i,),
+                root=node.root,
+            )
