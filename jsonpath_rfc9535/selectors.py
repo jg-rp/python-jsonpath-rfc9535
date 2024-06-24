@@ -78,7 +78,7 @@ class NameSelector(JSONPathSelector):
             with suppress(KeyError):
                 yield JSONPathNode(
                     value=node.value[self.name],
-                    location=node.location + (self.name,),
+                    location=node.location.prepend(self.name),
                     root=node.root,
                 )
 
@@ -127,7 +127,7 @@ class IndexSelector(JSONPathSelector):
             with suppress(IndexError):
                 _node = JSONPathNode(
                     value=node.value[self.index],
-                    location=node.location + (norm_index,),
+                    location=node.location.prepend(norm_index),
                     root=node.root,
                 )
                 yield _node
@@ -188,7 +188,7 @@ class SliceSelector(JSONPathSelector):
                 norm_index = self._normalized_index(node.value, idx)
                 _node = JSONPathNode(
                     value=element,
-                    location=node.location + (norm_index,),
+                    location=node.location.prepend(norm_index),
                     root=node.root,
                 )
                 yield _node
@@ -223,7 +223,7 @@ class WildcardSelector(JSONPathSelector):
             for name, val in members:
                 _node = JSONPathNode(
                     value=val,
-                    location=node.location + (name,),
+                    location=node.location.prepend(name),
                     root=node.root,
                 )
                 yield _node
@@ -232,7 +232,7 @@ class WildcardSelector(JSONPathSelector):
             for i, element in enumerate(node.value):
                 _node = JSONPathNode(
                     value=element,
-                    location=node.location + (i,),
+                    location=node.location.prepend(i),
                     root=node.root,
                 )
                 yield _node
@@ -286,7 +286,7 @@ class Filter(JSONPathSelector):
                     if self.expression.evaluate(context):
                         yield JSONPathNode(
                             value=val,
-                            location=node.location + (name,),
+                            location=node.location.prepend(name),
                             root=node.root,
                         )
                 except JSONPathTypeError as err:
@@ -305,7 +305,7 @@ class Filter(JSONPathSelector):
                     if self.expression.evaluate(context):
                         yield JSONPathNode(
                             value=element,
-                            location=node.location + (i,),
+                            location=node.location.prepend(i),
                             root=node.root,
                         )
                 except JSONPathTypeError as err:

@@ -90,7 +90,7 @@ class JSONPathRecursiveDescentSegment(JSONPathSegment):
                 if isinstance(val, (dict, list)):
                     _node = JSONPathNode(
                         value=val,
-                        location=node.location + (name,),
+                        location=node.location.prepend(name),
                         root=node.root,
                     )
                     yield from self._visit(_node, depth + 1)
@@ -99,7 +99,7 @@ class JSONPathRecursiveDescentSegment(JSONPathSegment):
                 if isinstance(element, (dict, list)):
                     _node = JSONPathNode(
                         value=element,
-                        location=node.location + (i,),
+                        location=node.location.prepend(i),
                         root=node.root,
                     )
                     yield from self._visit(_node, depth + 1)
@@ -177,13 +177,13 @@ def _nondeterministic_children(node: JSONPathNode) -> Iterable[JSONPathNode]:
         for name, val in items:
             yield JSONPathNode(
                 value=val,
-                location=node.location + (name,),
+                location=node.location.prepend(name),
                 root=node.root,
             )
     elif isinstance(node.value, list):
         for i, element in enumerate(node.value):
             yield JSONPathNode(
                 value=element,
-                location=node.location + (i,),
+                location=node.location.prepend(i),
                 root=node.root,
             )
