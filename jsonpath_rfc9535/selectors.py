@@ -15,11 +15,11 @@ from typing import Sequence
 from .exceptions import JSONPathIndexError
 from .exceptions import JSONPathTypeError
 from .filter_expressions import FilterContext
-from .node import JSONPathNode
 
 if TYPE_CHECKING:
     from .environment import JSONPathEnvironment
     from .filter_expressions import FilterExpression
+    from .node import JSONPathNode
     from .tokens import Token
 
 
@@ -76,11 +76,7 @@ class NameSelector(JSONPathSelector):
         """Select a value from a dict/object by its property/key."""
         if isinstance(node.value, dict):
             with suppress(KeyError):
-                yield JSONPathNode(
-                    value=node.value[self.name],
-                    location=node.location.prepend(self.name),
-                    root=node.root,
-                )
+                yield node.new_child(node.value[self.name], self.name)
 
 
 class IndexSelector(JSONPathSelector):
@@ -125,12 +121,7 @@ class IndexSelector(JSONPathSelector):
         if isinstance(node.value, list):
             norm_index = self._normalized_index(node.value)
             with suppress(IndexError):
-                _node = JSONPathNode(
-                    value=node.value[self.index],
-                    location=node.location.prepend(norm_index),
-                    root=node.root,
-                )
-                yield _node
+                yield node.new_child(node.value[self.index], norm_index)
 
 
 class SliceSelector(JSONPathSelector):
@@ -185,13 +176,7 @@ class SliceSelector(JSONPathSelector):
             idx = self.slice.start or 0
             step = self.slice.step or 1
             for element in node.value[self.slice]:
-                norm_index = self._normalized_index(node.value, idx)
-                _node = JSONPathNode(
-                    value=element,
-                    location=node.location.prepend(norm_index),
-                    root=node.root,
-                )
-                yield _node
+                yield node.new_child(element, self._normalized_index(node.value, idx))
                 idx += step
 
 
@@ -221,21 +206,11 @@ class WildcardSelector(JSONPathSelector):
                 members = node.value.items()
 
             for name, val in members:
-                _node = JSONPathNode(
-                    value=val,
-                    location=node.location.prepend(name),
-                    root=node.root,
-                )
-                yield _node
+                yield node.new_child(val, name)
 
         elif isinstance(node.value, list):
             for i, element in enumerate(node.value):
-                _node = JSONPathNode(
-                    value=element,
-                    location=node.location.prepend(i),
-                    root=node.root,
-                )
-                yield _node
+                yield node.new_child(element, i)
 
 
 class Filter(JSONPathSelector):
@@ -284,11 +259,7 @@ class Filter(JSONPathSelector):
                 )
                 try:
                     if self.expression.evaluate(context):
-                        yield JSONPathNode(
-                            value=val,
-                            location=node.location.prepend(name),
-                            root=node.root,
-                        )
+                        yield node.new_child(val, name)
                 except JSONPathTypeError as err:
                     if not err.token:
                         err.token = self.token
@@ -303,11 +274,7 @@ class Filter(JSONPathSelector):
                 )
                 try:
                     if self.expression.evaluate(context):
-                        yield JSONPathNode(
-                            value=element,
-                            location=node.location.prepend(i),
-                            root=node.root,
-                        )
+                        yield node.new_child(element, i)
                 except JSONPathTypeError as err:
                     if not err.token:
                         err.token = self.token

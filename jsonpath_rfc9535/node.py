@@ -5,10 +5,10 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing import List
 from typing import Tuple
+from typing import Union
 
 if TYPE_CHECKING:
     from .environment import JSONValue
-    from .location import Location
 
 
 class JSONPathNode:
@@ -29,20 +29,25 @@ class JSONPathNode:
         self,
         *,
         value: object,
-        location: Location,
+        location: Tuple[Union[int, str], ...],
         root: JSONValue,
     ) -> None:
         self.value: object = value
-        self.location: Location = location
+        self.location: Tuple[Union[int, str], ...] = location
         self.root = root
 
     def path(self) -> str:
         """Return the normalized path to this node."""
         return "$" + "".join(
-            (
-                f"['{p}']" if isinstance(p, str) else f"[{p}]"
-                for p in reversed(list(self.location))
-            )
+            f"['{p}']" if isinstance(p, str) else f"[{p}]" for p in self.location
+        )
+
+    def new_child(self, value: object, key: Union[int, str]) -> JSONPathNode:
+        """Return a new node using this node's location."""
+        return JSONPathNode(
+            value=value,
+            location=self.location + (key,),
+            root=self.root,
         )
 
     def __str__(self) -> str:

@@ -7,7 +7,6 @@ from typing import Iterable
 from typing import Optional
 from typing import Tuple
 
-from .location import Location
 from .node import JSONPathNode
 from .node import JSONPathNodeList
 from .segments import JSONPathRecursiveDescentSegment
@@ -70,7 +69,7 @@ class JSONPathQuery:
         nodes: Iterable[JSONPathNode] = [
             JSONPathNode(
                 value=value,
-                location=Location(None),
+                location=(),
                 root=value,
             )
         ]
