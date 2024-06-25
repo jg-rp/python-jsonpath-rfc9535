@@ -12,10 +12,10 @@ from typing import Iterable
 from typing import Tuple
 
 from .exceptions import JSONPathRecursionError
-from .node import JSONPathNode
 
 if TYPE_CHECKING:
     from .environment import JSONPathEnvironment
+    from .node import JSONPathNode
     from .selectors import JSONPathSelector
     from .tokens import Token
 
@@ -88,20 +88,12 @@ class JSONPathRecursiveDescentSegment(JSONPathSegment):
         if isinstance(node.value, dict):
             for name, val in node.value.items():
                 if isinstance(val, (dict, list)):
-                    _node = JSONPathNode(
-                        value=val,
-                        location=node.location + (name,),
-                        root=node.root,
-                    )
+                    _node = node.new_child(val, name)
                     yield from self._visit(_node, depth + 1)
         elif isinstance(node.value, list):
             for i, element in enumerate(node.value):
                 if isinstance(element, (dict, list)):
-                    _node = JSONPathNode(
-                        value=element,
-                        location=node.location + (i,),
-                        root=node.root,
-                    )
+                    _node = node.new_child(element, i)
                     yield from self._visit(_node, depth + 1)
 
     def _nondeterministic_visit(
@@ -175,15 +167,7 @@ def _nondeterministic_children(node: JSONPathNode) -> Iterable[JSONPathNode]:
         items = list(node.value.items())
         random.shuffle(items)
         for name, val in items:
-            yield JSONPathNode(
-                value=val,
-                location=node.location + (name,),
-                root=node.root,
-            )
+            yield node.new_child(val, name)
     elif isinstance(node.value, list):
         for i, element in enumerate(node.value):
-            yield JSONPathNode(
-                value=element,
-                location=node.location + (i,),
-                root=node.root,
-            )
+            yield node.new_child(element, i)

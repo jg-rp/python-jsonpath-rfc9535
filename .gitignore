@@ -47,6 +47,9 @@ coverage.xml
 .pytest_cache/
 cov.xml
 
+# Profiling data
+mprofile*
+
 # Translations
 *.mo
 *.pot
@@ -81,6 +84,7 @@ ENV/
 # Dev utils
 dev.py
 profile_.py
+tests/test_dev.py
 
 # Test fixtures
 comparison_regression_suite.yaml

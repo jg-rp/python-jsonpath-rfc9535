@@ -39,7 +39,15 @@ class JSONPathNode:
     def path(self) -> str:
         """Return the normalized path to this node."""
         return "$" + "".join(
-            (f"['{p}']" if isinstance(p, str) else f"[{p}]" for p in self.location)
+            f"['{p}']" if isinstance(p, str) else f"[{p}]" for p in self.location
+        )
+
+    def new_child(self, value: object, key: Union[int, str]) -> JSONPathNode:
+        """Return a new node using this node's location."""
+        return JSONPathNode(
+            value=value,
+            location=self.location + (key,),
+            root=self.root,
         )
 
     def __str__(self) -> str:

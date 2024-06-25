@@ -72,7 +72,7 @@ def test_nondeterminism(case: Case) -> None:
 
     env = MockEnv()
 
-    # Repeat enough times to has high probability that we've covered all
+    # Repeat enough times so as to have high probability that we've covered all
     # valid permutations.
     results = {
         _result_repr(env.find(case.selector, case.document).values())
