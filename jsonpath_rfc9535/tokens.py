@@ -193,3 +193,8 @@ class TokenStream:
                 f"expected {_typ}, found {self.peek.type_.name!r}",
                 token=self.peek,
             )
+
+    def expect_peek_not(self, typ: TokenType, message: str) -> None:
+        """Raise an exception if the next token type is not one of _type_."""
+        if self.peek.type_ == typ:
+            raise JSONPathSyntaxError(message, token=self.peek)

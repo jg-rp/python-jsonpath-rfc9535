@@ -179,6 +179,7 @@ convention = "google"
 "scripts/__init__.py" = ["D104"]
 "tests/*" = ["D100", "D101", "D104", "D103"]
 "jsonpath_rfc9535/lex.py" = ["E741"]
+"jsonpath_rfc9535/parse.py" = ["PLR2004"]
 "jsonpath_rfc9535/utils/nondeterministic_descent.py" = [
   "D103",
   "D101",

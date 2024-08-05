@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from typing import TYPE_CHECKING
 from typing import Callable
 from typing import Dict
@@ -312,6 +311,7 @@ class Parser:
             if stream.peek.type_ != TokenType.RBRACKET:
                 stream.expect_peek(TokenType.COMMA)
                 stream.next_token()
+                stream.expect_peek_not(TokenType.RBRACKET, "unexpected trailing comma")
 
             stream.next_token()
 
@@ -362,11 +362,29 @@ class Parser:
         )
 
     def parse_integer_literal(self, stream: TokenStream) -> Expression:
+        value = stream.current.value
+        if value.startswith("0") and len(value) > 1:
+            raise JSONPathSyntaxError("invalid integer literal", token=stream.current)
+
         # Convert to float first to handle scientific notation.
-        return IntegerLiteral(stream.current, value=int(float(stream.current.value)))
+        try:
+            return IntegerLiteral(stream.current, value=int(float(value)))
+        except ValueError as err:
+            raise JSONPathSyntaxError(
+                "invalid integer literal", token=stream.current
+            ) from err
 
     def parse_float_literal(self, stream: TokenStream) -> Expression:
-        return FloatLiteral(stream.current, value=float(stream.current.value))
+        value = stream.current.value
+        if value.startswith("0") and len(value.split(".")[0]) > 1:
+            raise JSONPathSyntaxError("invalid float literal", token=stream.current)
+
+        try:
+            return FloatLiteral(stream.current, value=float(stream.current.value))
+        except ValueError as err:
+            raise JSONPathSyntaxError(
+                "invalid float literal", token=stream.current
+            ) from err
 
     def parse_prefix_expression(self, stream: TokenStream) -> Expression:
         tok = stream.next_token()
@@ -514,12 +532,127 @@ class Parser:
             value = token.value.replace('"', '\\"').replace("\\'", "'")
         else:
             value = token.value
-        try:
-            rv = json.loads(f'"{value}"')
-            assert isinstance(rv, str)
-            return rv
-        except json.JSONDecodeError as err:
-            raise JSONPathSyntaxError(str(err).split(":")[1], token=token) from None
+
+        return self._unescape_string(value, token)
+
+    def _unescape_string(self, value: str, token: Token) -> str:
+        unescaped: List[str] = []
+        index = 0
+
+        while index < len(value):
+            ch = value[index]
+            if ch == "\\":
+                index += 1
+                _ch, index = self._decode_escape_sequence(value, index, token)
+                unescaped.append(_ch)
+            else:
+                self._string_from_codepoint(ord(ch), token)
+                unescaped.append(ch)
+            index += 1
+        return "".join(unescaped)
+
+    def _decode_escape_sequence(  # noqa: PLR0911
+        self, value: str, index: int, token: Token
+    ) -> Tuple[str, int]:
+        ch = value[index]
+        if ch == '"':
+            return '"', index
+        if ch == "\\":
+            return "\\", index
+        if ch == "/":
+            return "/", index
+        if ch == "b":
+            return "\x08", index
+        if ch == "f":
+            return "\x0c", index
+        if ch == "n":
+            return "\n", index
+        if ch == "r":
+            return "\r", index
+        if ch == "t":
+            return "\t", index
+        if ch == "u":
+            codepoint, index = self._decode_hex_char(value, index, token)
+            return self._string_from_codepoint(codepoint, token), index
+
+        raise JSONPathSyntaxError(
+            f"unknown escape sequence at index {token.index + index - 1}",
+            token=token,
+        )
+
+    def _decode_hex_char(self, value: str, index: int, token: Token) -> Tuple[int, int]:
+        length = len(value)
+
+        if index + 4 >= length:
+            raise JSONPathSyntaxError(
+                f"incomplete escape sequence at index {token.index + index - 1}",
+                token=token,
+            )
+
+        index += 1  # move past 'u'
+        codepoint = self._parse_hex_digits(value[index : index + 4], token)
+
+        if self._is_low_surrogate(codepoint):
+            raise JSONPathSyntaxError(
+                f"unexpected low surrogate at index {token.index + index - 1}",
+                token=token,
+            )
+
+        if self._is_high_surrogate(codepoint):
+            # expect a surrogate pair
+            if not (
+                index + 9 < length
+                and value[index + 4] == "\\"
+                and value[index + 5] == "u"
+            ):
+                raise JSONPathSyntaxError(
+                    f"incomplete escape sequence at index {token.index + index - 2}",
+                    token=token,
+                )
+
+            low_surrogate = self._parse_hex_digits(value[index + 6 : index + 10], token)
+
+            if not self._is_low_surrogate(low_surrogate):
+                raise JSONPathSyntaxError(
+                    f"unexpected codepoint at index {token.index + index + 4}",
+                    token=token,
+                )
+
+            codepoint = 0x10000 + (
+                ((codepoint & 0x03FF) << 10) | (low_surrogate & 0x03FF)
+            )
+
+            return (codepoint, index + 9)
+
+        return (codepoint, index + 3)
+
+    def _parse_hex_digits(self, digits: str, token: Token) -> int:
+        codepoint = 0
+        for digit in digits.encode():
+            codepoint <<= 4
+            if digit >= 48 and digit <= 57:
+                codepoint |= digit - 48
+            elif digit >= 65 and digit <= 70:
+                codepoint |= digit - 65 + 10
+            elif digit >= 97 and digit <= 102:
+                codepoint |= digit - 97 + 10
+            else:
+                raise JSONPathSyntaxError(
+                    "invalid \\uXXXX escape sequence",
+                    token=token,
+                )
+        return codepoint
+
+    def _string_from_codepoint(self, codepoint: int, token: Token) -> str:
+        if codepoint <= 0x1F:
+            raise JSONPathSyntaxError("invalid character", token=token)
+        return chr(codepoint)
+
+    def _is_high_surrogate(self, codepoint: int) -> bool:
+        return codepoint >= 0xD800 and codepoint <= 0xDBFF
+
+    def _is_low_surrogate(self, codepoint: int) -> bool:
+        return codepoint >= 0xDC00 and codepoint <= 0xDFFF
 
     def _raise_for_non_comparable_function(
         self, expr: Expression, token: Token
