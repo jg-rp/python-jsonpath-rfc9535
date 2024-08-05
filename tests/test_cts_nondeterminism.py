@@ -7,6 +7,7 @@ The CTS is a submodule located in /tests/cts. After a git clone, run
 import json
 import operator
 from dataclasses import dataclass
+from dataclasses import field
 from typing import Any
 from typing import List
 from typing import Optional
@@ -26,6 +27,7 @@ class Case:
     result: Any = None
     results: Optional[List[Any]] = None
     invalid_selector: Optional[bool] = None
+    tags: List[str] = field(default_factory=list)
 
 
 def cases() -> List[Case]:
