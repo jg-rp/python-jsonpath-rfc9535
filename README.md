@@ -114,7 +114,7 @@ products = jsonpath.find("$..products.*", data).values()
 
 Apply JSONPath expression _query_ to _value_. _value_ should arbitrary, possible nested, Python dictionaries, lists, strings, integers, floats, Booleans or `None`, as you would get from [`json.load()`](https://docs.python.org/3/library/json.html#json.load).
 
-A list of `JSONPathNode` instances is returned, one node for each value matched by _path_. The returned list will be empty if there were no matches.
+A list of `JSONPathNode` instances is returned, one node for each value matched by _query_. The returned list will be empty if there were no matches.
 
 Each `JSONPathNode` has:
 
