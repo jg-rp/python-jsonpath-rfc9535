@@ -34,7 +34,7 @@ from .query import JSONPathQuery
 from .segments import JSONPathChildSegment
 from .segments import JSONPathRecursiveDescentSegment
 from .segments import JSONPathSegment
-from .selectors import Filter
+from .selectors import FilterSelector
 from .selectors import IndexSelector
 from .selectors import JSONPathSelector
 from .selectors import NameSelector
@@ -112,9 +112,6 @@ class Parser:
             TokenType.SINGLE_QUOTE_STRING: self.parse_string_literal,
             TokenType.TRUE: self.parse_boolean,
         }
-
-        # TODO: can a function argument be a grouped expression?
-        # TODO: can a function argument contain a !?
 
         self.function_argument_map: Dict[
             TokenType, Callable[[TokenStream], Expression]
@@ -291,7 +288,7 @@ class Parser:
                     )
                 )
             elif stream.current.type_ == TokenType.FILTER:
-                selectors.append(self.parse_filter(stream))
+                selectors.append(self.parse_filter_selector(stream))
             elif stream.current.type_ == TokenType.EOF:
                 raise JSONPathSyntaxError(
                     "unexpected end of query", token=stream.current
@@ -320,9 +317,9 @@ class Parser:
 
         return selectors
 
-    def parse_filter(self, stream: TokenStream) -> Filter:
+    def parse_filter_selector(self, stream: TokenStream) -> FilterSelector:
         tok = stream.next_token()
-        expr = self.parse_filter_selector(stream)
+        expr = self.parse_filter_expression(stream)
 
         if isinstance(expr, FunctionExtension):
             func = self.env.function_extensions.get(expr.name)
@@ -342,7 +339,7 @@ class Parser:
                 token=expr.token,
             )
 
-        return Filter(
+        return FilterSelector(
             env=self.env,
             token=tok,
             expression=FilterExpression(token=expr.token, expression=expr),
@@ -392,7 +389,9 @@ class Parser:
         return PrefixExpression(
             tok,
             operator="!",
-            right=self.parse_filter_selector(stream, precedence=self.PRECEDENCE_PREFIX),
+            right=self.parse_filter_expression(
+                stream, precedence=self.PRECEDENCE_PREFIX
+            ),
         )
 
     def parse_infix_expression(
@@ -400,7 +399,7 @@ class Parser:
     ) -> Expression:
         tok = stream.next_token()
         precedence = self.PRECEDENCES.get(tok.type_, self.PRECEDENCE_LOWEST)
-        right = self.parse_filter_selector(stream, precedence)
+        right = self.parse_filter_expression(stream, precedence)
         operator = self.BINARY_OPERATORS[tok.type_]
 
         if operator in self.COMPARISON_OPERATORS:
@@ -425,7 +424,7 @@ class Parser:
 
     def parse_grouped_expression(self, stream: TokenStream) -> Expression:
         stream.next_token()
-        expr = self.parse_filter_selector(stream)
+        expr = self.parse_filter_expression(stream)
         stream.next_token()
 
         while stream.current.type_ != TokenType.RPAREN:
@@ -497,7 +496,7 @@ class Parser:
             ),
         )
 
-    def parse_filter_selector(
+    def parse_filter_expression(
         self, stream: TokenStream, precedence: int = PRECEDENCE_LOWEST
     ) -> Expression:
         try:

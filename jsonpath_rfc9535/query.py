@@ -1,4 +1,4 @@
-"""A compiled JSONPath ready to be applied to a JSON-like value."""
+"""A compiled JSONPath expression ready to be applied to JSON-like data."""
 
 from __future__ import annotations
 
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 
 class JSONPathQuery:
-    """A compiled JSONPath expression ready to be applied to a JSON-like value.
+    """A compiled JSONPath expression ready to be applied to JSON-like data.
 
     Arguments:
         env: The `JSONPathEnvironment` this query is bound to.

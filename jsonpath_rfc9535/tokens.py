@@ -67,7 +67,7 @@ class Token:
             token derives.
     """
 
-    __slots__ = ("type_", "value", "index", "query")
+    __slots__ = ("type_", "value", "index", "query", "message")
 
     def __init__(
         self,
@@ -75,16 +75,18 @@ class Token:
         value: str,
         index: int,
         query: str,
+        message: str | None = None,
     ) -> None:
         self.type_ = type_
         self.value = value
         self.index = index
         self.query = query
+        self.message = message
 
     def __repr__(self) -> str:  # pragma: no cover
         return (
             f"Token(type={self.type_.name!r}, value={self.value!r}, "
-            f"index={self.index}, query={self.query!r})"
+            f"index={self.index}, query={self.query!r}, message={self.message!r})"
         )
 
     def __eq__(self, other: object) -> bool:
