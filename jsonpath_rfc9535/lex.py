@@ -77,6 +77,7 @@ class Lexer:
 
     def next(self) -> str:
         """Return the next character, or the empty string if no more characters."""
+        # TODO: benchmark ty/except approach
         if self.pos >= len(self.query):
             return ""
 
@@ -100,18 +101,18 @@ class Lexer:
 
     def peek(self) -> str:
         """Return the next character without advancing the pointer."""
+        # TODO: benchmark try/except without self.next()
         c = self.next()
         if c:
             self.backup()
         return c
 
-    def accept(self, pattern: Pattern[str]) -> bool:
-        """Increment the pointer if the current character matches _pattern_."""
-        c = self.next()
-        if pattern.match(c):
+    def accept(self, s: str) -> bool:
+        """Increment the pointer if the current position starts with _s_."""
+        # TODO: benchmark using accept instead of accept_match for known words
+        if self.query.startswith(s, self.pos):
+            self.pos += len(s)
             return True
-        if c:
-            self.backup()
         return False
 
     def accept_match(self, pattern: Pattern[str]) -> bool:
@@ -140,6 +141,8 @@ class Lexer:
 
     def error(self, msg: str) -> None:
         """Emit an error token."""
+        # TODO: move msg out of Token.value. We'll need the value too when implementing
+        # better error messages.
         self.tokens.append(Token(TokenType.ERROR, msg, self.pos, self.query))
 
 
@@ -147,6 +150,7 @@ StateFn = Callable[[Lexer], Optional["StateFn"]]
 
 
 def lex_root(l: Lexer) -> Optional[StateFn]:  # noqa: D103
+    # TODO: benchmark peek/next instead of next/backup
     c = l.next()
 
     if c != "$":
@@ -392,6 +396,7 @@ def lex_inside_filter(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0915, PL
         l.backup()
 
         # numbers
+        # TODO: try accept_match(RE_FLOAT), including negative exponent
         if l.accept_match(RE_INT):
             if l.peek() == ".":
                 # A float
@@ -474,6 +479,7 @@ def lex_string_factory(quote: str, state: StateFn) -> StateFn:
                 l.next()
                 continue
 
+            # TODO: replace use of `head` with peek
             if c == "\\" and not RE_ESCAPE.match(head):
                 l.error("invalid escape")
                 return None
