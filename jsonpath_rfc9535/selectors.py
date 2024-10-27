@@ -213,7 +213,7 @@ class WildcardSelector(JSONPathSelector):
                 yield node.new_child(element, i)
 
 
-class Filter(JSONPathSelector):
+class FilterSelector(JSONPathSelector):
     """Filter array/list items or dict/object values with a filter expression."""
 
     __slots__ = ("expression",)
@@ -233,7 +233,7 @@ class Filter(JSONPathSelector):
 
     def __eq__(self, __value: object) -> bool:
         return (
-            isinstance(__value, Filter)
+            isinstance(__value, FilterSelector)
             and self.expression == __value.expression
             and self.token == __value.token
         )
