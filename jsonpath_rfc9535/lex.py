@@ -17,16 +17,11 @@ from .tokens import TokenType
 RE_WHITESPACE = re.compile(r"[ \n\r\t]+")
 RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
 RE_INDEX = re.compile(r"-?[0-9]+")
-RE_INT = re.compile(r"-?[0-9]+")
-RE_EXPONENT = re.compile(r"[eE][+-]?[0-9]+")
-RE_NEGATIVE_EXPONENT = re.compile(r"[eE]-[0-9]+")
+RE_INT = re.compile(r"-?[0-9]+(?:[eE]\+?[0-9]+)?")
+# RE_FLOAT includes numbers with a negative exponent and no decimal point.
+RE_FLOAT = re.compile(r"(:?-?[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?)|(-?[0-9]+[eE]-[0-9]+)")
 RE_FUNCTION_NAME = re.compile(r"[a-z][a-z_0-9]*")
-RE_AND = re.compile(r"&&")
-RE_OR = re.compile(r"\|\|")
-RE_TRUE = re.compile(r"true")
-RE_FALSE = re.compile(r"false")
-RE_NULL = re.compile(r"null")
-RE_ESCAPE = re.compile(r"\\[bfnrtu/]")
+ESCAPES = frozenset(["b", "f", "n", "r", "t", "u", "/", "\\"])
 
 
 class Lexer:
@@ -77,13 +72,12 @@ class Lexer:
 
     def next(self) -> str:
         """Return the next character, or the empty string if no more characters."""
-        # TODO: benchmark ty/except approach
-        if self.pos >= len(self.query):
+        try:
+            c = self.query[self.pos]
+            self.pos += 1
+            return c
+        except IndexError:
             return ""
-
-        c = self.query[self.pos]
-        self.pos += 1
-        return c
 
     def ignore(self) -> None:
         """Ignore characters up to the pointer."""
@@ -101,15 +95,13 @@ class Lexer:
 
     def peek(self) -> str:
         """Return the next character without advancing the pointer."""
-        # TODO: benchmark try/except without self.next()
-        c = self.next()
-        if c:
-            self.backup()
-        return c
+        try:
+            return self.query[self.pos]
+        except IndexError:
+            return ""
 
     def accept(self, s: str) -> bool:
         """Increment the pointer if the current position starts with _s_."""
-        # TODO: benchmark using accept instead of accept_match for known words
         if self.query.startswith(s, self.pos):
             self.pos += len(s)
             return True
@@ -141,20 +133,25 @@ class Lexer:
 
     def error(self, msg: str) -> None:
         """Emit an error token."""
-        # TODO: move msg out of Token.value. We'll need the value too when implementing
         # better error messages.
-        self.tokens.append(Token(TokenType.ERROR, msg, self.pos, self.query))
+        self.tokens.append(
+            Token(
+                TokenType.ERROR,
+                self.query[self.start : self.pos],
+                self.start,
+                self.query,
+                msg,
+            )
+        )
 
 
 StateFn = Callable[[Lexer], Optional["StateFn"]]
 
 
 def lex_root(l: Lexer) -> Optional[StateFn]:  # noqa: D103
-    # TODO: benchmark peek/next instead of next/backup
     c = l.next()
 
     if c != "$":
-        l.backup()
         l.error(f"expected '$', found {c!r}")
         return None
 
@@ -184,9 +181,8 @@ def lex_segment(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0911
         l.emit(TokenType.LBRACKET)
         return lex_inside_bracketed_segment
 
-    # default
-    l.backup()
     if l.filter_depth:
+        l.backup()
         return lex_inside_filter
 
     l.error(f"expected '.', '..' or a bracketed selection, found {c!r}")
@@ -208,13 +204,13 @@ def lex_descendant_segment(l: Lexer) -> Optional[StateFn]:  # noqa: D103
         l.emit(TokenType.LBRACKET)
         return lex_inside_bracketed_segment
 
-    # default
     l.backup()
 
     if l.accept_match(RE_PROPERTY):
         l.emit(TokenType.PROPERTY)
         return lex_segment
 
+    l.next()
     l.error(f"unexpected descendant selection token {c!r}")
     return None
 
@@ -222,7 +218,7 @@ def lex_descendant_segment(l: Lexer) -> Optional[StateFn]:  # noqa: D103
 def lex_shorthand_selector(l: Lexer) -> Optional[StateFn]:  # noqa: D103
     l.ignore()  # ignore dot
 
-    if l.ignore_whitespace():
+    if l.accept_match(RE_WHITESPACE):
         l.error("unexpected whitespace after dot")
         return None
 
@@ -322,11 +318,9 @@ def lex_inside_filter(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0915, PL
             return lex_inside_bracketed_segment
 
         if c == "'":
-            # String literal
             return lex_single_quoted_string_inside_filter_expression
 
         if c == '"':
-            # String literal
             return lex_double_quoted_string_inside_filter_expression
 
         if c == "(":
@@ -392,62 +386,31 @@ def lex_inside_filter(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0915, PL
                 l.emit(TokenType.GT)
             continue
 
-        # default
         l.backup()
 
-        # numbers
-        # TODO: try accept_match(RE_FLOAT), including negative exponent
-        if l.accept_match(RE_INT):
-            if l.peek() == ".":
-                # A float
-                l.next()
-                if not l.accept_match(RE_INT):
-                    l.error("a fractional digit is required after a decimal point")
-                    return None
-
-                l.accept_match(RE_EXPONENT)
-                l.emit(TokenType.FLOAT)
-                continue
-
-            # An int, or float if exponent is negative
-            if l.accept_match(RE_NEGATIVE_EXPONENT):
-                l.emit(TokenType.FLOAT)
-            else:
-                l.accept_match(RE_EXPONENT)
-                l.emit(TokenType.INT)
-            continue
-
-        if l.accept_match(RE_AND):
+        if l.accept("&&"):
             l.emit(TokenType.AND)
-            continue
-
-        if l.accept_match(RE_OR):
+        elif l.accept("||"):
             l.emit(TokenType.OR)
-            continue
-
-        if l.accept_match(RE_TRUE):
+        elif l.accept("true"):
             l.emit(TokenType.TRUE)
-            continue
-
-        if l.accept_match(RE_FALSE):
+        elif l.accept("false"):
             l.emit(TokenType.FALSE)
-            continue
-
-        if l.accept_match(RE_NULL):
+        elif l.accept("null"):
             l.emit(TokenType.NULL)
-            continue
-
-        # functions
-        if l.accept_match(RE_FUNCTION_NAME) and l.peek() == "(":
+        elif l.accept_match(RE_FLOAT):
+            l.emit(TokenType.FLOAT)
+        elif l.accept_match(RE_INT):
+            l.emit(TokenType.INT)
+        elif l.accept_match(RE_FUNCTION_NAME) and l.peek() == "(":
             # Keep track of parentheses for this function call.
             l.paren_stack.append(1)
             l.emit(TokenType.FUNCTION)
             l.next()
             l.ignore()  # ignore LPAREN
-            continue
-
-        l.error(f"unexpected filter selector token {c!r}")
-        return None
+        else:
+            l.error(f"unexpected filter selector token {c!r}")
+            return None
 
 
 def lex_string_factory(quote: str, state: StateFn) -> StateFn:
@@ -472,17 +435,15 @@ def lex_string_factory(quote: str, state: StateFn) -> StateFn:
             return state
 
         while True:
-            head = l.query[l.pos : l.pos + 2]
             c = l.next()
 
-            if head in ("\\\\", f"\\{quote}"):
-                l.next()
-                continue
-
-            # TODO: replace use of `head` with peek
-            if c == "\\" and not RE_ESCAPE.match(head):
-                l.error("invalid escape")
-                return None
+            if c == "\\":
+                peeked = l.peek()
+                if peeked in ESCAPES or peeked == quote:
+                    l.next()
+                else:
+                    l.error("invalid escape")
+                    return None
 
             if not c:
                 l.error(f"unclosed string starting at index {l.start}")
@@ -528,6 +489,6 @@ def tokenize(query: str) -> List[Token]:
     lexer.run()
 
     if tokens and tokens[-1].type_ == TokenType.ERROR:
-        raise JSONPathSyntaxError(tokens[-1].value, token=tokens[-1])
+        raise JSONPathSyntaxError(tokens[-1].message, token=tokens[-1])
 
     return tokens

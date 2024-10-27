@@ -64,9 +64,10 @@ no-cov = "cov --no-cov {args}"
 test = "pytest {args}"
 lint = "ruff check ."
 typing = "mypy"
+benchmark = "python scripts/benchmark.py"
 
 [[tool.hatch.envs.all.matrix]]
-python = ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
+python = ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "pypy3.10"]
 
 [tool.coverage.run]
 branch = true

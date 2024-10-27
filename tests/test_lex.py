@@ -57,7 +57,7 @@ TEST_CASES = [
         description="missing root selector",
         query="foo.bar",
         want=[
-            Token(TokenType.ERROR, "expected '$', found 'f'", 0, "foo.bar"),
+            Token(TokenType.ERROR, "f", 0, "foo.bar", "expected '$', found 'f'"),
         ],
     ),
     Case(
@@ -67,9 +67,10 @@ TEST_CASES = [
             Token(TokenType.ROOT, "$", 0, "$foo"),
             Token(
                 TokenType.ERROR,
-                "expected '.', '..' or a bracketed selection, found 'f'",
+                "f",
                 1,
                 "$foo",
+                "expected '.', '..' or a bracketed selection, found 'f'",
             ),
         ],
     ),
@@ -88,7 +89,13 @@ TEST_CASES = [
         query="$. foo.bar",
         want=[
             Token(TokenType.ROOT, "$", 0, "$. foo.bar"),
-            Token(TokenType.ERROR, "unexpected whitespace after dot", 3, "$. foo.bar"),
+            Token(
+                TokenType.ERROR,
+                " ",
+                2,
+                "$. foo.bar",
+                "unexpected whitespace after dot",
+            ),
         ],
     ),
     Case(
@@ -129,9 +136,10 @@ TEST_CASES = [
             Token(TokenType.DOUBLE_DOT, "..", 1, "$...foo"),
             Token(
                 TokenType.ERROR,
-                "unexpected descendant selection token '.'",
+                ".",
                 3,
                 "$...foo",
+                "unexpected descendant selection token '.'",
             ),
         ],
     ),
@@ -143,9 +151,10 @@ TEST_CASES = [
             Token(TokenType.DOUBLE_DOT, "..", 1, "$....foo"),
             Token(
                 TokenType.ERROR,
-                "unexpected descendant selection token '.'",
+                ".",
                 3,
                 "$....foo",
+                "unexpected descendant selection token '.'",
             ),
         ],
     ),
