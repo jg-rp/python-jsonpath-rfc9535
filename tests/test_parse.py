@@ -89,7 +89,7 @@ TEST_CASES = [
     Case(
         description="filter with string literal",
         query="$.some[?(@.thing == 'foo')]",
-        want="$['some'][?@['thing'] == \"foo\"]",
+        want="$['some'][?@['thing'] == 'foo']",
     ),
     Case(
         description="filter with integer literal",
@@ -104,32 +104,32 @@ TEST_CASES = [
     Case(
         description="filter with logical not",
         query="$.some[?(@.thing > 1 && !$.other)]",
-        want="$['some'][?(@['thing'] > 1 && !$['other'])]",
+        want="$['some'][?@['thing'] > 1 && !$['other']]",
     ),
     Case(
         description="filter with grouped expression",
         query="$.some[?(@.thing > 1 && ($.foo || $.bar))]",
-        want="$['some'][?(@['thing'] > 1 && ($['foo'] || $['bar']))]",
+        want="$['some'][?@['thing'] > 1 && ($['foo'] || $['bar'])]",
     ),
     Case(
         description="comparison to single quoted string literal with escape",
         query="$[?@.foo == 'ba\\'r']",
-        want="$[?@['foo'] == \"ba'r\"]",
+        want="$[?@['foo'] == 'ba\\'r']",
     ),
     Case(
         description="comparison to double quoted string literal with escape",
         query='$[?@.foo == "ba\\"r"]',
-        want='$[?@[\'foo\'] == "ba\\"r"]',
+        want="$[?@['foo'] == 'ba\"r']",
     ),
     Case(
         description="not binds more tightly than or",
         query="$[?!@.a || !@.b]",
-        want="$[?(!@['a'] || !@['b'])]",
+        want="$[?!@['a'] || !@['b']]",
     ),
     Case(
         description="not binds more tightly than and",
         query="$[?!@.a && !@.b]",
-        want="$[?(!@['a'] && !@['b'])]",
+        want="$[?!@['a'] && !@['b']]",
     ),
     Case(
         description="control precedence with parens",
