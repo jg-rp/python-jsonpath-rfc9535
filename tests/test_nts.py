@@ -16,7 +16,7 @@ class NormalizedCase:
     name: str
     query: str
     document: JSONValue
-    paths: list[str]
+    paths: List[str]
 
 
 def normalized_cases() -> List[NormalizedCase]:
