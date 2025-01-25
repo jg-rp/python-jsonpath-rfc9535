@@ -1,5 +1,12 @@
 # Python JSONPath RFC 9535 Change Log
 
+## Version 0.1.4 (unreleased)
+
+**Fixes**
+
+- Fixed normalized paths produced by `JSONPathNode.path()`. Previously we were not handling some escape sequences correctly in name selectors.
+- Fixed serialization of `JSONPathQuery` instances. `JSONPathQuery.__str__()` now serialized name selectors and string literals to the canonical format, similar to normalized paths. We're also now minimizing the use of parentheses when serializing logical expressions.
+
 ## Version 0.1.3
 
 **Fixes**

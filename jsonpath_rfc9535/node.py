@@ -7,6 +7,8 @@ from typing import List
 from typing import Tuple
 from typing import Union
 
+from .serialize import canonical_string
+
 if TYPE_CHECKING:
     from .environment import JSONValue
 
@@ -39,7 +41,8 @@ class JSONPathNode:
     def path(self) -> str:
         """Return the normalized path to this node."""
         return "$" + "".join(
-            f"['{p}']" if isinstance(p, str) else f"[{p}]" for p in self.location
+            f"[{canonical_string(p)}]" if isinstance(p, str) else f"[{p}]"
+            for p in self.location
         )
 
     def new_child(self, value: object, key: Union[int, str]) -> JSONPathNode:

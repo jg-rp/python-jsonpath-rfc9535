@@ -15,6 +15,7 @@ from typing import Sequence
 from .exceptions import JSONPathIndexError
 from .exceptions import JSONPathTypeError
 from .filter_expressions import FilterContext
+from .serialize import canonical_string
 
 if TYPE_CHECKING:
     from .environment import JSONPathEnvironment
@@ -60,7 +61,7 @@ class NameSelector(JSONPathSelector):
         self.name = name
 
     def __str__(self) -> str:
-        return repr(self.name)
+        return canonical_string(self.name)
 
     def __eq__(self, __value: object) -> bool:
         return (

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 from abc import ABC
 from abc import abstractmethod
 from typing import TYPE_CHECKING
@@ -16,6 +15,7 @@ from jsonpath_rfc9535.function_extensions.filter_function import FilterFunction
 
 from .exceptions import JSONPathTypeError
 from .node import JSONPathNodeList
+from .serialize import canonical_string
 
 if TYPE_CHECKING:
     from .environment import JSONPathEnvironment
@@ -45,6 +45,12 @@ class Expression(ABC):
         """
 
 
+PRECEDENCE_LOWEST = 1
+PRECEDENCE_LOGICAL_OR = 3
+PRECEDENCE_LOGICAL_AND = 4
+PRECEDENCE_PREFIX = 7
+
+
 class FilterExpression(Expression):
     """An expression that evaluates to `true` or `false`."""
 
@@ -55,7 +61,7 @@ class FilterExpression(Expression):
         self.expression = expression
 
     def __str__(self) -> str:
-        return str(self.expression)
+        return self._canonical_string(self.expression, PRECEDENCE_LOWEST)
 
     def __eq__(self, other: object) -> bool:
         return (
@@ -65,6 +71,31 @@ class FilterExpression(Expression):
     def evaluate(self, context: FilterContext) -> bool:
         """Evaluate the filter expression in the given _context_."""
         return _is_truthy(self.expression.evaluate(context))
+
+    def _canonical_string(self, expression: Expression, parent_precedence: int) -> str:
+        if isinstance(expression, LogicalExpression):
+            if expression.operator == "&&":
+                left = self._canonical_string(expression.left, PRECEDENCE_LOGICAL_AND)
+                right = self._canonical_string(expression.right, PRECEDENCE_LOGICAL_AND)
+                expr = f"{left} && {right}"
+                return (
+                    f"({expr})" if parent_precedence >= PRECEDENCE_LOGICAL_AND else expr
+                )
+
+            if expression.operator == "||":
+                left = self._canonical_string(expression.left, PRECEDENCE_LOGICAL_OR)
+                right = self._canonical_string(expression.right, PRECEDENCE_LOGICAL_OR)
+                expr = f"{left} || {right}"
+                return (
+                    f"({expr})" if parent_precedence >= PRECEDENCE_LOGICAL_OR else expr
+                )
+
+        if isinstance(expression, PrefixExpression):
+            operand = self._canonical_string(expression.right, PRECEDENCE_PREFIX)
+            expr = f"!{operand}"
+            return f"({expr})" if parent_precedence > PRECEDENCE_PREFIX else expr
+
+        return str(expression)
 
 
 LITERAL_T = TypeVar("LITERAL_T")
@@ -105,7 +136,7 @@ class StringLiteral(FilterExpressionLiteral[str]):
     __slots__ = ()
 
     def __str__(self) -> str:
-        return json.dumps(self.value)
+        return canonical_string(self.value)
 
 
 class IntegerLiteral(FilterExpressionLiteral[int]):
