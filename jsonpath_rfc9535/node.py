@@ -67,6 +67,10 @@ class JSONPathNodeList(List[JSONPathNode]):
         """Return the values from this node list."""
         return [node.value for node in self]
 
+    def paths(self) -> List[str]:
+        """Return normalized paths from this node list."""
+        return [node.path() for node in self]
+
     def items(self) -> List[Tuple[str, object]]:
         """Return a list of (path, value) pairs, one for each node in the list."""
         return [(node.path(), node.value) for node in self]
