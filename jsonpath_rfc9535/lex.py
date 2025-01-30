@@ -120,7 +120,7 @@ class Lexer:
         if self.pos != self.start:
             msg = (
                 "must emit or ignore before consuming whitespace "
-                f"({self.query[self.start: self.pos]})"
+                f"({self.query[self.start : self.pos]})"
             )
             raise JSONPathLexerError(
                 msg, token=Token(TokenType.ERROR, msg, self.pos, self.query)
@@ -245,8 +245,6 @@ def lex_inside_bracketed_segment(l: Lexer) -> Optional[StateFn]:  # noqa: PLR091
 
         if c == "]":
             l.emit(TokenType.RBRACKET)
-            if l.filter_depth:
-                return lex_inside_filter
             return lex_segment
 
         if c == "":
