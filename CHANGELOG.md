@@ -6,6 +6,7 @@
 
 - Fixed normalized paths produced by `JSONPathNode.path()`. Previously we were not handling some escape sequences correctly in name selectors.
 - Fixed serialization of `JSONPathQuery` instances. `JSONPathQuery.__str__()` now serialized name selectors and string literals to the canonical format, similar to normalized paths. We're also now minimizing the use of parentheses when serializing logical expressions.
+- Fixed parsing of filter queries with multiple bracketed segments.
 
 ## Version 0.1.3
 

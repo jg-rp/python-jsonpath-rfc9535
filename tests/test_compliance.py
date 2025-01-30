@@ -25,7 +25,9 @@ class Case:
     selector: str
     document: JSONValue = None
     result: Any = None
+    result_paths: Optional[List[Any]] = None
     results: Optional[List[Any]] = None
+    results_paths: Optional[List[Any]] = None
     invalid_selector: Optional[bool] = None
     tags: List[str] = field(default_factory=list)
 
@@ -53,12 +55,15 @@ def test_compliance(case: Case) -> None:
         pytest.skip(reason=SKIP[case.name])  # no cov
 
     assert case.document is not None
-    rv = jsonpath.JSONPathNodeList(jsonpath.find(case.selector, case.document)).values()
+    nodes = jsonpath.JSONPathNodeList(jsonpath.find(case.selector, case.document))
 
     if case.results is not None:
-        assert rv in case.results
+        assert isinstance(case.results_paths, list)
+        assert nodes.values() in case.results
+        assert nodes.paths() in case.results_paths
     else:
-        assert rv == case.result
+        assert nodes.values() == case.result
+        assert nodes.paths() == case.result_paths
 
 
 @pytest.mark.parametrize("case", invalid_cases(), ids=operator.attrgetter("name"))

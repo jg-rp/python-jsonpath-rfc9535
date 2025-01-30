@@ -136,6 +136,11 @@ TEST_CASES = [
         query="$[?!(@.a && !@.b)]",
         want="$[?!(@['a'] && !@['b'])]",
     ),
+    Case(
+        description="filter query, multiple bracketed segments",
+        query="$[?@[0][1]]",
+        want="$[?@[0][1]]",
+    ),
 ]
 
 

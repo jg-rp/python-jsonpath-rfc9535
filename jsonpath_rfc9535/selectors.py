@@ -166,19 +166,13 @@ class SliceSelector(JSONPathSelector):
             ):
                 raise JSONPathIndexError("index out of range", token=self.token)
 
-    def _normalized_index(self, obj: Sequence[object], index: int) -> int:
-        if index < 0 and len(obj) >= abs(index):
-            return len(obj) + index
-        return index
-
     def resolve(self, node: JSONPathNode) -> Iterable[JSONPathNode]:
         """Select a range of values from an array/list."""
         if isinstance(node.value, list) and self.slice.step != 0:
-            idx = self.slice.start or 0
-            step = self.slice.step or 1
-            for element in node.value[self.slice]:
-                yield node.new_child(element, self._normalized_index(node.value, idx))
-                idx += step
+            for idx, element in zip(  # noqa: B905
+                range(*self.slice.indices(len(node.value))), node.value[self.slice]
+            ):
+                yield node.new_child(element, idx)
 
 
 class WildcardSelector(JSONPathSelector):
