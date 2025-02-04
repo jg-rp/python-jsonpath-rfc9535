@@ -16,6 +16,7 @@ from typing import Tuple
 import pytest
 
 from jsonpath_rfc9535 import JSONPathEnvironment
+from jsonpath_rfc9535 import JSONPathNodeList
 from jsonpath_rfc9535 import JSONValue
 
 
@@ -25,7 +26,9 @@ class Case:
     selector: str
     document: JSONValue = None
     result: Any = None
+    result_paths: Optional[List[Any]] = None
     results: Optional[List[Any]] = None
+    results_paths: Optional[List[Any]] = None
     invalid_selector: Optional[bool] = None
     tags: List[str] = field(default_factory=list)
 
@@ -52,12 +55,15 @@ class MockEnv(JSONPathEnvironment):
 def test_nondeterminism_valid_cases(case: Case) -> None:
     assert case.document is not None
     env = MockEnv()
-    rv = env.find(case.selector, case.document).values()
+    nodes = JSONPathNodeList(env.find(case.selector, case.document))
 
     if case.results is not None:
-        assert rv in case.results
+        assert isinstance(case.results_paths, list)
+        assert nodes.values() in case.results
+        assert nodes.paths() in case.results_paths
     else:
-        assert rv == case.result
+        assert nodes.values() == case.result
+        assert nodes.paths() == case.result_paths
 
 
 @pytest.mark.parametrize(
