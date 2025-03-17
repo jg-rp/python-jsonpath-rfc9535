@@ -1,5 +1,11 @@
 # Python JSONPath RFC 9535 Change Log
 
+## Version 0.1.5 (unreleased)
+
+**Fixes**
+
+- Fixed "unbalanced parentheses" errors for queries that do have balanced brackets. See [#13](https://github.com/jg-rp/python-jsonpath-rfc9535/issues/13).
+
 ## Version 0.1.4
 
 **Fixes**
