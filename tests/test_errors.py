@@ -85,6 +85,11 @@ def test_recursive_data_nondeterministic() -> None:
         env.find(query, data)
 
 
+def test_nested_functions_unbalanced_parens(env: JSONPathEnvironment) -> None:
+    with pytest.raises(JSONPathSyntaxError, match="unbalanced parentheses"):
+        env.compile("$.values[?match(@.a, value($..['regex'])]")
+
+
 class FilterLiteralTestCase(NamedTuple):
     description: str
     query: str

@@ -299,10 +299,6 @@ def lex_inside_filter(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0915, PL
 
         if c == "]":
             l.filter_depth -= 1
-            if len(l.paren_stack) == 1:
-                l.error("unbalanced parentheses")
-                return None
-
             l.backup()
             return lex_inside_bracketed_segment
 
@@ -485,6 +481,9 @@ def tokenize(query: str) -> List[Token]:
     """Scan JSONPath expression _query_ and return a list of tokens."""
     lexer, tokens = lex(query)
     lexer.run()
+
+    if len(lexer.paren_stack) == 1:
+        raise JSONPathSyntaxError("unbalanced parentheses", token=tokens[-1])
 
     if tokens and tokens[-1].type_ == TokenType.ERROR:
         raise JSONPathSyntaxError(tokens[-1].message, token=tokens[-1])
