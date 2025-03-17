@@ -27,18 +27,29 @@ ESCAPES = frozenset(["b", "f", "n", "r", "t", "u", "/", "\\"])
 class Lexer:
     """JSONPath expression lexical scanner."""
 
-    __slots__ = ("filter_depth", "paren_stack", "tokens", "start", "pos", "query")
+    __slots__ = (
+        "filter_depth",
+        "func_call_stack",
+        "bracket_stack",
+        "tokens",
+        "start",
+        "pos",
+        "query",
+    )
 
     def __init__(self, query: str) -> None:
         self.filter_depth = 0
         """Filter nesting level."""
 
-        self.paren_stack: List[int] = []
+        self.func_call_stack: List[int] = []
         """A running count of parentheses for each, possibly nested, function call.
         
         If the stack is empty, we are not in a function call. Remember that
         function arguments can be arbitrarily nested in parentheses.
         """
+
+        self.bracket_stack: list[tuple[str, int]] = []
+        """A stack of opening (parentheses/bracket, index) pairs."""
 
         self.tokens: List[Token] = []
         """Tokens resulting from scanning a JSONPath expression."""
@@ -133,7 +144,7 @@ class Lexer:
 
     def error(self, msg: str) -> None:
         """Emit an error token."""
-        # better error messages.
+        # TODO: better error messages.
         self.tokens.append(
             Token(
                 TokenType.ERROR,
@@ -179,6 +190,7 @@ def lex_segment(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0911
 
     if c == "[":
         l.emit(TokenType.LBRACKET)
+        l.bracket_stack.append((c, l.pos - 1))
         return lex_inside_bracketed_segment
 
     if l.filter_depth:
@@ -202,6 +214,7 @@ def lex_descendant_segment(l: Lexer) -> Optional[StateFn]:  # noqa: D103
 
     if c == "[":
         l.emit(TokenType.LBRACKET)
+        l.bracket_stack.append((c, l.pos - 1))
         return lex_inside_bracketed_segment
 
     l.backup()
@@ -244,11 +257,17 @@ def lex_inside_bracketed_segment(l: Lexer) -> Optional[StateFn]:  # noqa: PLR091
         c = l.next()
 
         if c == "]":
+            if not l.bracket_stack or l.bracket_stack[-1][0] != "[":
+                l.backup()
+                l.error("unbalanced brackets")
+                return None
+
+            l.bracket_stack.pop()
             l.emit(TokenType.RBRACKET)
             return lex_segment
 
         if c == "":
-            l.error("unclosed bracketed selection")
+            l.error("unbalanced brackets")
             return None
 
         if c == "*":
@@ -299,10 +318,6 @@ def lex_inside_filter(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0915, PL
 
         if c == "]":
             l.filter_depth -= 1
-            if len(l.paren_stack) == 1:
-                l.error("unbalanced parentheses")
-                return None
-
             l.backup()
             return lex_inside_bracketed_segment
 
@@ -310,7 +325,7 @@ def lex_inside_filter(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0915, PL
             l.emit(TokenType.COMMA)
             # If we have unbalanced parens, we are inside a function call and a
             # comma separates arguments. Otherwise a comma separates selectors.
-            if l.paren_stack:
+            if l.func_call_stack:
                 continue
             l.filter_depth -= 1
             return lex_inside_bracketed_segment
@@ -323,19 +338,26 @@ def lex_inside_filter(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0915, PL
 
         if c == "(":
             l.emit(TokenType.LPAREN)
+            l.bracket_stack.append((c, l.pos - 1))
             # Are we in a function call? If so, a function argument contains parens.
-            if l.paren_stack:
-                l.paren_stack[-1] += 1
+            if l.func_call_stack:
+                l.func_call_stack[-1] += 1
             continue
 
         if c == ")":
+            if not l.bracket_stack or l.bracket_stack[-1][0] != "(":
+                l.backup()
+                l.error("unbalanced parentheses")
+                return None
+
+            l.bracket_stack.pop()
             l.emit(TokenType.RPAREN)
             # Are we closing a function call or a parenthesized expression?
-            if l.paren_stack:
-                if l.paren_stack[-1] == 1:
-                    l.paren_stack.pop()
+            if l.func_call_stack:
+                if l.func_call_stack[-1] == 1:
+                    l.func_call_stack.pop()
                 else:
-                    l.paren_stack[-1] -= 1
+                    l.func_call_stack[-1] -= 1
             continue
 
         if c == "$":
@@ -402,8 +424,9 @@ def lex_inside_filter(l: Lexer) -> Optional[StateFn]:  # noqa: D103, PLR0915, PL
             l.emit(TokenType.INT)
         elif l.accept_match(RE_FUNCTION_NAME) and l.peek() == "(":
             # Keep track of parentheses for this function call.
-            l.paren_stack.append(1)
+            l.func_call_stack.append(1)
             l.emit(TokenType.FUNCTION)
+            l.bracket_stack.append(("(", l.pos))
             l.next()
             l.ignore()  # ignore LPAREN
         else:
@@ -485,6 +508,21 @@ def tokenize(query: str) -> List[Token]:
     """Scan JSONPath expression _query_ and return a list of tokens."""
     lexer, tokens = lex(query)
     lexer.run()
+
+    # Check for remaining opening brackets that have not been closes.
+    if lexer.bracket_stack:
+        ch, index = lexer.bracket_stack[0]
+        msg = f"unbalanced {'brackets' if ch == '[' else 'parentheses'}"
+        raise JSONPathSyntaxError(
+            msg,
+            token=Token(
+                TokenType.ERROR,
+                lexer.query[index],
+                index,
+                lexer.query,
+                msg,
+            ),
+        )
 
     if tokens and tokens[-1].type_ == TokenType.ERROR:
         raise JSONPathSyntaxError(tokens[-1].message, token=tokens[-1])

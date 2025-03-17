@@ -18,14 +18,14 @@ def env() -> JSONPathEnvironment:
 
 def test_unclosed_selection_list(env: JSONPathEnvironment) -> None:
     with pytest.raises(
-        JSONPathSyntaxError, match=r"unclosed bracketed selection, line 1, column 5"
+        JSONPathSyntaxError, match=r"unbalanced brackets, line 1, column 1"
     ):
         env.compile("$[1,2")
 
 
 def test_unclosed_selection_list_inside_filter(env: JSONPathEnvironment) -> None:
     with pytest.raises(
-        JSONPathSyntaxError, match=r"unclosed bracketed selection, line 1, column 10"
+        JSONPathSyntaxError, match=r"unbalanced brackets, line 1, column 1"
     ):
         env.compile("$[?@.a < 1")
 
@@ -83,6 +83,11 @@ def test_recursive_data_nondeterministic() -> None:
 
     with pytest.raises(JSONPathRecursionError):
         env.find(query, data)
+
+
+def test_nested_functions_unbalanced_parens(env: JSONPathEnvironment) -> None:
+    with pytest.raises(JSONPathSyntaxError, match="unbalanced brackets"):
+        env.compile("$.values[?match(@.a, value($..['regex'])]")
 
 
 class FilterLiteralTestCase(NamedTuple):
