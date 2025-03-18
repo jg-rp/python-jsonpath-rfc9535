@@ -121,6 +121,7 @@ exclude = [
   "dist",
   "node_modules",
   "venv",
+  "tests/nts",
 ]
 
 # Same as Black.

@@ -18,14 +18,14 @@ def env() -> JSONPathEnvironment:
 
 def test_unclosed_selection_list(env: JSONPathEnvironment) -> None:
     with pytest.raises(
-        JSONPathSyntaxError, match=r"unbalanced brackets, line 1, column 1"
+        JSONPathSyntaxError, match=r"unbalanced brackets, line 1, column 5"
     ):
         env.compile("$[1,2")
 
 
 def test_unclosed_selection_list_inside_filter(env: JSONPathEnvironment) -> None:
     with pytest.raises(
-        JSONPathSyntaxError, match=r"unbalanced brackets, line 1, column 1"
+        JSONPathSyntaxError, match=r"unclosed bracketed selection, line 1, column 10"
     ):
         env.compile("$[?@.a < 1")
 
