@@ -509,9 +509,12 @@ def tokenize(query: str) -> List[Token]:
     lexer, tokens = lex(query)
     lexer.run()
 
-    # Check for remaining opening brackets that have not been closes.
+    if tokens and tokens[-1].type_ == TokenType.ERROR:
+        raise JSONPathSyntaxError(tokens[-1].message, token=tokens[-1])
+
+    # Check for remaining opening brackets that have not been closed.
     if lexer.bracket_stack:
-        ch, index = lexer.bracket_stack[0]
+        ch, index = lexer.bracket_stack[-1]
         msg = f"unbalanced {'brackets' if ch == '[' else 'parentheses'}"
         raise JSONPathSyntaxError(
             msg,
@@ -523,8 +526,5 @@ def tokenize(query: str) -> List[Token]:
                 msg,
             ),
         )
-
-    if tokens and tokens[-1].type_ == TokenType.ERROR:
-        raise JSONPathSyntaxError(tokens[-1].message, token=tokens[-1])
 
     return tokens
