@@ -8,7 +8,6 @@ from typing import List
 from typing import Optional
 from typing import Pattern
 from typing import Tuple
-from typing import TypeAlias
 
 from .exceptions import JSONPathLexerError
 from .exceptions import JSONPathSyntaxError
@@ -27,7 +26,7 @@ RE_FUNCTION_NAME = re.compile(r"[a-z][a-z_0-9]*")
 ESCAPES = frozenset(["b", "f", "n", "r", "t", "u", "/", "\\"])
 
 
-StateFn: TypeAlias = Callable[[], Optional["StateFn"]]
+StateFn = Callable[[], Optional["StateFn"]]
 
 
 class Lexer:
