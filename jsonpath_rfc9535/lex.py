@@ -134,17 +134,12 @@ class Lexer:
     def accept_string_literal(self, quote: str, token_type: TokenType) -> bool:
         """Scan and emit a string literal token.
 
-        Return `True` is successful, or `False` otherwise, in which case an error token
-        will have been emitted.
+        Assumes the next character is equal to `quote`.
+
+        Return `True` is successful or `False` otherwise, in which case an error token
+        will have been emitted. The caller should treat `False` as an error condition.
         """
         self.ignore()  # ignore opening quote
-
-        if self.peek() == "":
-            # an empty string
-            self.emit(token_type)
-            self.next()
-            self.ignore()
-            return True
 
         while True:
             c = self.next()
@@ -162,7 +157,7 @@ class Lexer:
                 return False
 
             if c == quote:
-                self.backup()
+                self.backup()  # don't emit the closing quote
                 self.emit(token_type)
                 self.next()
                 self.ignore()  # ignore closing quote
@@ -186,7 +181,6 @@ class Lexer:
 
     def error(self, msg: str) -> None:
         """Emit an error token."""
-        # TODO: better error messages.
         self.tokens.append(
             Token(
                 TokenType.ERROR,
