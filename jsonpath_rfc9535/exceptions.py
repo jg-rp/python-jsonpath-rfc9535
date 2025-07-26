@@ -27,6 +27,7 @@ class JSONPathError(Exception):
         if not self.token:
             return msg
 
+        # TODO: Pretty error messages with current line and visual pointer.
         line, column = self.token.position()
         return f"{msg}, line {line}, column {column}"
 

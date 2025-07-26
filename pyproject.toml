@@ -161,7 +161,17 @@ select = [
   "YTT",
 ]
 
-ignore = ["S105", "S101", "D107", "D105", "PLR0913", "SIM108", "PT001", "A005"]
+ignore = [
+  "S105",
+  "S101",
+  "D107",
+  "D105",
+  "PLR0913",
+  "SIM108",
+  "PT001",
+  "A005",
+  "PLW1641",
+]
 
 fixable = ["I"]
 unfixable = []
