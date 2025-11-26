@@ -1,5 +1,12 @@
 # Python JSONPath RFC 9535 Change Log
 
+## Version 0.2.0 (unreleased)
+
+**Features**
+
+- Added `JSONPathNode.parent`, a reference the the node's parent node.
+- Changed `JSONPathNode.value` to be a `@property` and `setter`. When assigning to `JSONPathNode.value`, source data is updated too.
+
 ## Version 0.1.6
 
 - Added py.typed.

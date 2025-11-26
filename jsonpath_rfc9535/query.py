@@ -70,6 +70,7 @@ class JSONPathQuery:
             JSONPathNode(
                 value=value,
                 location=(),
+                parent=None,
                 root=value,
             )
         ]

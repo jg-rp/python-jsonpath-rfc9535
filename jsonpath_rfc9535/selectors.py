@@ -77,7 +77,7 @@ class NameSelector(JSONPathSelector):
         """Select a value from a dict/object by its property/key."""
         if isinstance(node.value, dict):
             with suppress(KeyError):
-                yield node.new_child(node.value[self.name], self.name)
+                yield node.new_child(node.value[self.name], self.name, node)
 
 
 class IndexSelector(JSONPathSelector):
@@ -122,7 +122,7 @@ class IndexSelector(JSONPathSelector):
         if isinstance(node.value, list):
             norm_index = self._normalized_index(node.value)
             with suppress(IndexError):
-                yield node.new_child(node.value[self.index], norm_index)
+                yield node.new_child(node.value[self.index], norm_index, node)
 
 
 class SliceSelector(JSONPathSelector):
@@ -172,7 +172,7 @@ class SliceSelector(JSONPathSelector):
             for idx, element in zip(  # noqa: B905
                 range(*self.slice.indices(len(node.value))), node.value[self.slice]
             ):
-                yield node.new_child(element, idx)
+                yield node.new_child(element, idx, node)
 
 
 class WildcardSelector(JSONPathSelector):
@@ -201,11 +201,11 @@ class WildcardSelector(JSONPathSelector):
                 members = node.value.items()
 
             for name, val in members:
-                yield node.new_child(val, name)
+                yield node.new_child(val, name, node)
 
         elif isinstance(node.value, list):
             for i, element in enumerate(node.value):
-                yield node.new_child(element, i)
+                yield node.new_child(element, i, node)
 
 
 class FilterSelector(JSONPathSelector):
@@ -254,7 +254,7 @@ class FilterSelector(JSONPathSelector):
                 )
                 try:
                     if self.expression.evaluate(context):
-                        yield node.new_child(val, name)
+                        yield node.new_child(val, name, node)
                 except JSONPathTypeError as err:
                     if not err.token:
                         err.token = self.token
@@ -269,7 +269,7 @@ class FilterSelector(JSONPathSelector):
                 )
                 try:
                     if self.expression.evaluate(context):
-                        yield node.new_child(element, i)
+                        yield node.new_child(element, i, node)
                 except JSONPathTypeError as err:
                     if not err.token:
                         err.token = self.token
