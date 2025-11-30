@@ -2,6 +2,10 @@
 
 ## Version 1.0.0
 
+Bump to stable status.
+
+## Version 0.2.0
+
 **Features**
 
 - Added `JSONPathNode.parent`, a reference the the node's parent node. See [#21](https://github.com/jg-rp/python-jsonpath-rfc9535/issues/21).
