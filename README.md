@@ -116,16 +116,16 @@ Apply JSONPath expression _query_ to _value_. _value_ should arbitrary, possible
 
 A list of `JSONPathNode` instances is returned, one node for each value matched by _query_. The returned list will be empty if there were no matches.
 
-Each `JSONPathNode` has:
+Each `JSONPathNode` has properties:
 
-- a `value` property, which is the JSON-like value associated with the node.
-- a `location` property, which is a tuple of property names and array/list indexes that were required to reach the node's value in the target JSON document.
-- a `path()` method, which returns the normalized path to the node in the target JSON document.
+- `value` - The JSON-like value associated with the node.
+- `location` - A tuple of property names and array/list indexes that were required to reach the node's value in the target JSON document.
+- `parent` (_New in version 0.2.0_) - The node's parent node, or `None` if the current node is the root.
 
 ```python
 import jsonpath_rfc9535 as jsonpath
 
-value = {
+data = {
     "users": [
         {"name": "Sue", "score": 100},
         {"name": "John", "score": 86, "admin": True},
@@ -135,17 +135,35 @@ value = {
     "moderator": "John",
 }
 
-for node in jsonpath.find("$.users[?@.score > 85]", value):
+nodes = jsonpath.find("$.users[?@.score > 85]", data)
+
+for node in nodes:
     print(f"{node.value} at '{node.path()}'")
 
 # {'name': 'Sue', 'score': 100} at '$['users'][0]'
 # {'name': 'John', 'score': 86, 'admin': True} at '$['users'][1]'
 ```
 
+`JSONPathNode.path()` returns the normalized path to the node in the target JSON document.
+
 `JSONPathNodeList` is a subclass of `list` with some helper methods.
 
 - `values()` returns a list of values, one for each node.
 - `items()` returns a list of `(normalized path, value)` tuples.
+
+**_New in version 0.2.0_**
+
+Assigning to `JSONPathNode.value` will update the node's value **and mutate source data**. Beware,updating data after evaluating a query can invalidate existing child node paths.
+
+```python
+# ... continued from above
+
+node = jsonpath.find_one("$.users[@.name == 'John'].score")
+if node:
+    node.value = 999
+
+print(data["users"][1])  # {'name': 'John', 'score': 999, 'admin': True}
+```
 
 ### find_one
 
