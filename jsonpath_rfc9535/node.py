@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 class JSONPathNode:
     """A JSON-like value and its location in a JSON document.
 
-    Assigning to `JSONPathNode.value` will automatically mutate source data.
+    Assigning to `JSONPathNode.value` will update and mutate source data too.
     Updating data after evaluating a query can invalidate existing child
     nodes. Use at your own risk.
 

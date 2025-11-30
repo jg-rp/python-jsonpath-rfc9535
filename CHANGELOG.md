@@ -4,8 +4,8 @@
 
 **Features**
 
-- Added `JSONPathNode.parent`, a reference the the node's parent node.
-- Changed `JSONPathNode.value` to be a `@property` and `setter`. When assigning to `JSONPathNode.value`, source data is updated too.
+- Added `JSONPathNode.parent`, a reference the the node's parent node. See [#21](https://github.com/jg-rp/python-jsonpath-rfc9535/issues/21).
+- Changed `JSONPathNode.value` to be a `@property` and `setter`. When assigning to `JSONPathNode.value`, source data is updated too. See [#21](https://github.com/jg-rp/python-jsonpath-rfc9535/issues/21).
 
 ## Version 0.1.6
 
