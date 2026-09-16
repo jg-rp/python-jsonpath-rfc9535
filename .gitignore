@@ -93,3 +93,7 @@ cts.json
 
 # System
 .DS_Store
+
+# Docs build
+site/
+.doctrees

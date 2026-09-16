@@ -1,0 +1,85 @@
+"""JSONPath query string tokenization."""
+
+TOKEN_AND = 1
+TOKEN_ASTERISK = 2
+TOKEN_AT = 3
+TOKEN_COLON = 4
+TOKEN_COMMA = 5
+TOKEN_DOLLAR = 6
+TOKEN_DOT = 7
+TOKEN_DOUBLE_DOT = 8
+TOKEN_DOUBLE_QUOTED_ESC_STRING = 9
+TOKEN_DOUBLE_QUOTED_STRING = 10
+TOKEN_EOI = 11
+TOKEN_EQ = 12
+TOKEN_ERROR = 13
+TOKEN_FLOAT = 15
+TOKEN_GE = 17
+TOKEN_GT = 18
+TOKEN_INT = 19  # Without exponent (could be an index)
+TOKEN_INTEGER = 20  # With exponent
+TOKEN_LE = 21
+TOKEN_LEFT_BRACKET = 22
+TOKEN_LEFT_PAREN = 23
+TOKEN_LT = 24
+TOKEN_WORD = 25
+TOKEN_NE = 26
+TOKEN_OR = 29
+TOKEN_QUESTION = 30
+TOKEN_RIGHT_BRACKET = 31
+TOKEN_RIGHT_PAREN = 32
+TOKEN_SINGLE_QUOTED_ESC_STRING = 33
+TOKEN_SINGLE_QUOTED_STRING = 34
+TOKEN_SPAN = 35
+TOKEN_TRIVIA = 36
+TOKEN_EXCLAMATION = 37
+
+TOKENS: dict[int, str] = {
+    TOKEN_AND: "AND",
+    TOKEN_ASTERISK: "ASTERISK",
+    TOKEN_AT: "AT",
+    TOKEN_COLON: "COLON",
+    TOKEN_COMMA: "COMMA",
+    TOKEN_DOLLAR: "DOLLAR",
+    TOKEN_DOT: "DOT",
+    TOKEN_DOUBLE_DOT: "DOUBLE_DOT",
+    TOKEN_DOUBLE_QUOTED_ESC_STRING: "DOUBLE_QUOTED_ESC_STRING",
+    TOKEN_DOUBLE_QUOTED_STRING: "DOUBLE_QUOTED_STRING",
+    TOKEN_EOI: "EOI",
+    TOKEN_EQ: "EQ",
+    TOKEN_ERROR: "ERROR",
+    TOKEN_EXCLAMATION: "TOKEN_EXCLAMATION",
+    TOKEN_FLOAT: "FLOAT",
+    TOKEN_GE: "GE",
+    TOKEN_GT: "GT",
+    TOKEN_INT: "INDEX",
+    TOKEN_INTEGER: "INTEGER",
+    TOKEN_LE: "LE",
+    TOKEN_LEFT_BRACKET: "LEFT_BRACKET",
+    TOKEN_LEFT_PAREN: "LEFT_PAREN",
+    TOKEN_LT: "LT",
+    TOKEN_NE: "NE",
+    TOKEN_OR: "OR",
+    TOKEN_QUESTION: "QUESTION",
+    TOKEN_RIGHT_BRACKET: "RIGHT_BRACKET",
+    TOKEN_RIGHT_PAREN: "RIGHT_PAREN",
+    TOKEN_SINGLE_QUOTED_ESC_STRING: "SINGLE_QUOTED_ESC_STRING",
+    TOKEN_SINGLE_QUOTED_STRING: "SINGLE_QUOTED_STRING",
+    TOKEN_SPAN: "SPAN",
+    TOKEN_TRIVIA: "TRIVIA",
+    TOKEN_WORD: "WORD",
+}
+
+
+type Token = tuple[int, int, int]
+"""Token type, start index and end index."""
+
+
+def token_value(token: Token, source: str) -> str:
+    """Return the substring in source pointed to by token."""
+    return source[token[1] : token[2]]
+
+
+def span(start: Token, stop: Token) -> Token:
+    """Return a new token spanning start and stop."""
+    return (TOKEN_SPAN, start[1], stop[2])

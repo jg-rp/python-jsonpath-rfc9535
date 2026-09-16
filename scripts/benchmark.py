@@ -1,20 +1,14 @@
 import json
 import timeit
-from typing import Any
-from typing import Mapping
 from typing import NamedTuple
-from typing import Sequence
-from typing import Union
-
-# ruff: noqa: D100 D101 D103 T201
 
 
 class CTSCase(NamedTuple):
     query: str
-    data: Union[Sequence[Any], Mapping[str, Any]]
+    data: object
 
 
-def valid_queries() -> Sequence[CTSCase]:
+def valid_queries() -> list[CTSCase]:
     with open("tests/cts/cts.json") as fd:
         data = json.load(fd)
 
@@ -27,34 +21,34 @@ def valid_queries() -> Sequence[CTSCase]:
 
 QUERIES = valid_queries()
 
-COMPILE_AND_FIND_SETUP = "from jsonpath_rfc9535 import find"
+COMPILE_AND_FIND_SETUP = "import jsonpath_rfc9535 as jsonpath"
 
 COMPILE_AND_FIND_STMT = """\
-for path, data in QUERIES:
-    list(find(path, data))"""
+for source, data in QUERIES:
+    jsonpath.find(source, data)"""
 
 COMPILE_AND_FIND_VALUES_STMT = """\
-for path, data in QUERIES:
-    [node.value for node in find(path, data)]"""
+for source, data in QUERIES:
+    list(jsonpath.findall(source, data))"""
 
-JUST_COMPILE_SETUP = "from jsonpath_rfc9535 import compile"
+JUST_COMPILE_SETUP = "import jsonpath_rfc9535 as jsonpath"
 
 JUST_COMPILE_STMT = """\
-for path, _ in QUERIES:
-    compile(path)"""
+for source, _ in QUERIES:
+    jsonpath.parse(source)"""
 
 JUST_FIND_SETUP = """\
-from jsonpath_rfc9535 import compile
-compiled_queries = [(compile(q), d) for q, d in QUERIES]
+import jsonpath_rfc9535 as jsonpath
+compiled_queries = [(jsonpath.parse(q), d) for q, d in QUERIES]
 """
 
 JUST_FIND_STMT = """\
-for path, data in compiled_queries:
-    list(path.find(data))"""
+for query, data in compiled_queries:
+    query.find(data)"""
 
 JUST_FIND_VALUES_STMT = """\
-for path, data in compiled_queries:
-    [node.value for node in path.find(data)]"""
+for query, data in compiled_queries:
+    list(query.findall(data))"""
 
 
 def benchmark(number: int = 100, best_of: int = 3) -> None:

@@ -34,17 +34,25 @@ DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
 THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-"""  # noqa: D205
+"""
+
+# pyright: reportIncompatibleMethodOverride=false
 
 import dataclasses
 import operator
+from collections.abc import Sequence
 
 import pytest
 
 from jsonpath_rfc9535 import JSONPathEnvironment
 from jsonpath_rfc9535.exceptions import JSONPathTypeError
-from jsonpath_rfc9535.function_extensions import ExpressionType
-from jsonpath_rfc9535.function_extensions import FilterFunction
+from jsonpath_rfc9535.functions import (
+    LOGICAL_TYPE,
+    NODES_TYPE,
+    VALUE_TYPE,
+    ExpressionType,
+    FunctionExtension,
+)
 from jsonpath_rfc9535.node import JSONPathNodeList
 
 
@@ -145,45 +153,45 @@ TEST_CASES = [
 ]
 
 
-class MockFoo(FilterFunction):
-    arg_types = [ExpressionType.NODES]
-    return_type = ExpressionType.NODES
+class MockFoo(FunctionExtension):
+    arg_types: Sequence[ExpressionType] = [NODES_TYPE]
+    return_type: ExpressionType = NODES_TYPE
 
-    def __call__(self, nodes: JSONPathNodeList) -> JSONPathNodeList:  # noqa: D102
+    def __call__(self, nodes: JSONPathNodeList) -> JSONPathNodeList:
         return nodes  # no cov
 
 
-class MockBar(FilterFunction):
-    arg_types = [ExpressionType.VALUE]
-    return_type = ExpressionType.LOGICAL
+class MockBar(FunctionExtension):
+    arg_types: Sequence[ExpressionType] = [VALUE_TYPE]
+    return_type: ExpressionType = LOGICAL_TYPE
 
-    def __call__(self) -> bool:  # noqa: D102
+    def __call__(self) -> bool:
         return False  # no cov
 
 
-class MockBn(FilterFunction):
-    arg_types = [ExpressionType.NODES]
-    return_type = ExpressionType.LOGICAL
+class MockBn(FunctionExtension):
+    arg_types: Sequence[ExpressionType] = [NODES_TYPE]
+    return_type: ExpressionType = LOGICAL_TYPE
 
-    def __call__(self, _: object) -> bool:  # noqa: D102
+    def __call__(self, _: object) -> bool:
         return False  # no cov
 
 
-class MockBl(FilterFunction):
-    arg_types = [ExpressionType.LOGICAL]
-    return_type = ExpressionType.LOGICAL
+class MockBl(FunctionExtension):
+    arg_types: Sequence[ExpressionType] = [LOGICAL_TYPE]
+    return_type: ExpressionType = LOGICAL_TYPE
 
-    def __call__(self, _: object) -> bool:  # noqa: D102
+    def __call__(self, _: object) -> bool:
         return False  # no cov
 
 
 @pytest.fixture()
 def env() -> JSONPathEnvironment:
     environment = JSONPathEnvironment()
-    environment.function_extensions["foo"] = MockFoo()
-    environment.function_extensions["bar"] = MockBar()
-    environment.function_extensions["bn"] = MockBn()
-    environment.function_extensions["bl"] = MockBl()
+    environment.functions["foo"] = MockFoo()
+    environment.functions["bar"] = MockBar()
+    environment.functions["bn"] = MockBn()
+    environment.functions["bl"] = MockBl()
     return environment
 
 
