@@ -10,6 +10,7 @@ from iregexp_check import check
 
 from ._lru_cache import LRUCache, ThreadSafeLRUCache
 from ._nothing import NOTHING
+from .exceptions import JSONPathError
 
 if TYPE_CHECKING:
     from .node import NodeList
@@ -85,29 +86,36 @@ class CachingRegexFunction(FunctionExtension):
         self.debug = debug
 
     def __call__(self, string: object, pattern: object) -> bool:
-        # TODO: test me
-        if not (isinstance(pattern, str) and isinstance(string, str)):
-            return False
+        if not isinstance(pattern, str):
+            return self._debug_or_false("pattern is not a string")
+
+        if not isinstance(string, str):
+            return self._debug_or_false("object is not a string")
 
         pattern_ = self.cache.get(pattern)
 
         if pattern_ == self.INVALID_PATTERN:
-            return False
+            return self._debug_or_false("invalid pattern from cache")
 
         if pattern_ is None:
             if not check(pattern):
                 self.cache[pattern] = self.INVALID_PATTERN
-                return False
+                return self._debug_or_false("I-Regexp check failed")
 
             try:
                 pattern_ = re.compile(map_re(pattern), re.VERSION1)
-            except re.error:
+            except re.error as err:
                 self.cache[pattern] = self.INVALID_PATTERN
-                return False
+                return self._debug_or_false(str(err))
 
             self.cache[pattern] = pattern_
 
         return self.go(pattern_, string)
+
+    def _debug_or_false(self, message: str) -> bool:
+        if self.debug:
+            raise JSONPathError(f"{self.__class__.__name__}: {message}")
+        return False
 
     def go(self, pattern: re.Pattern[str], string: str) -> bool:
         raise NotImplementedError

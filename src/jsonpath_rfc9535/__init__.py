@@ -3,6 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 
 from ._debug import tree_view
+from ._parser import Parser, Parser_
 from ._parser_standard import StandardParser
 from ._resolve import resolve
 from .environment import JSONPathEnvironment
@@ -29,6 +30,8 @@ __all__ = (
     "JSONPathTypeError",
     "Node",
     "NodeList",
+    "Parser",
+    "Parser_",
     "StandardParser",
     "parse",
     "resolve",
@@ -36,6 +39,8 @@ __all__ = (
 )
 
 DEFAULT_ENVIRONMENT = JSONPathEnvironment()
+
+# TODO: docs
 
 
 def compile(source: str) -> JSONPathQuery:
