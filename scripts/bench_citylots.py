@@ -2,7 +2,7 @@ import dataclasses
 import json
 import timeit
 
-from jsonpath_rfc9535 import JSONPathQuery, parse
+from jsonpath_rfc9535 import JSONPathQuery, compile
 
 
 @dataclasses.dataclass
@@ -36,16 +36,19 @@ FIXTURES: list[Fixture] = [
 ]
 
 QUERIES = {
-    "shallow": parse("$.features..properties"),
-    "deep": parse("$.features..properties.BLOCK_NUM"),
-    "conditional": parse(
+    "shallow": compile("$.features..properties"),
+    "deep": compile("$.features..properties.BLOCK_NUM"),
+    "conditional": compile(
         "$.features[?@.properties.STREET=='UNKNOWN'].properties.BLOCK_NUM"
+    ),
+    "regex": compile(
+        "$.features[?match(@.properties.STREET, 'UNKNOWN')].properties.BLOCK_NUM"
     ),
 }
 
 
 def go(query: JSONPathQuery, data: object) -> None:
-    list(query.findall(data))
+    list(query.find(data))
 
 
 NUMBER = 1

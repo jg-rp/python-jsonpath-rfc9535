@@ -3,6 +3,7 @@
 ## Version 2.0.0 (unreleased)
 
 - Dropped support for Python 3.8, 3.9, 3.10 and 3.11.
+- Added a configurable regex cache to the standard `match` and `search` functions.
 - Added detailed error messages to JSONPath exceptions.
 - Improved performance.
 - Removed non-deterministic features for validating the CTS.

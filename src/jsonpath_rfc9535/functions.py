@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any, Literal
 import regex as re
 from iregexp_check import check
 
+from ._lru_cache import LRUCache, ThreadSafeLRUCache
 from ._nothing import NOTHING
 
 if TYPE_CHECKING:
@@ -61,36 +62,71 @@ class Length(FunctionExtension):
             return NOTHING
 
 
-class Match(FunctionExtension):
+class CachingRegexFunction(FunctionExtension):
+    INVALID_PATTERN: Literal[1] = 1
+
     arg_types: Sequence[ExpressionType] = [VALUE_TYPE, VALUE_TYPE]
     return_type: ExpressionType = LOGICAL_TYPE
 
-    def __call__(self, string: str, pattern: object) -> object:
-        # TODO: cache pattern check and map_re
-        if not (isinstance(pattern, str) and check(pattern)):
+    def __init__(
+        self,
+        *,
+        cache_capacity: int = 300,
+        debug: bool = False,
+        thread_safe: bool = False,
+    ) -> None:
+        super().__init__()
+        self.cache: LRUCache[str, re.Pattern[str] | Literal[1]] = (
+            ThreadSafeLRUCache(capacity=cache_capacity)
+            if thread_safe
+            else LRUCache(capacity=cache_capacity)
+        )
+
+        self.debug = debug
+
+    def __call__(self, string: object, pattern: object) -> bool:
+        # TODO: test me
+        if not (isinstance(pattern, str) and isinstance(string, str)):
             return False
 
-        try:
-            # re.fullmatch caches compiled patterns internally
-            return bool(re.fullmatch(map_re(pattern), string))
-        except (TypeError, re.error):
+        pattern_ = self.cache.get(pattern)
+
+        if pattern_ == self.INVALID_PATTERN:
             return False
 
+        if pattern_ is None:
+            if not check(pattern):
+                self.cache[pattern] = self.INVALID_PATTERN
+                return False
 
-class Search(FunctionExtension):
+            try:
+                pattern_ = re.compile(map_re(pattern), re.VERSION1)
+            except re.error:
+                self.cache[pattern] = self.INVALID_PATTERN
+                return False
+
+            self.cache[pattern] = pattern_
+
+        return self.go(pattern_, string)
+
+    def go(self, pattern: re.Pattern[str], string: str) -> bool:
+        raise NotImplementedError
+
+
+class Match(CachingRegexFunction):
     arg_types: Sequence[ExpressionType] = [VALUE_TYPE, VALUE_TYPE]
     return_type: ExpressionType = LOGICAL_TYPE
 
-    def __call__(self, string: str, pattern: object) -> object:
-        # TODO: cache pattern check and map_re
-        if not (isinstance(pattern, str) and check(pattern)):
-            return False
+    def go(self, pattern: re.Pattern[str], string: str) -> bool:
+        return bool(pattern.fullmatch(string))
 
-        try:
-            # re.search caches compiled patterns internally
-            return bool(re.search(map_re(pattern), string, re.VERSION1))
-        except (TypeError, re.error):
-            return False
+
+class Search(CachingRegexFunction):
+    arg_types: Sequence[ExpressionType] = [VALUE_TYPE, VALUE_TYPE]
+    return_type: ExpressionType = LOGICAL_TYPE
+
+    def go(self, pattern: re.Pattern[str], string: str) -> bool:
+        return bool(pattern.search(string))
 
 
 class Value(FunctionExtension):
