@@ -7,7 +7,7 @@ from ._tokens import token_value
 
 
 def tree_view(segments: Sequence[Segment], source: str) -> str:
-    """Return a tree representation of segments for debugging."""
+    """Return a tree representation of `segments` for debugging."""
     lines = chain(
         [f"Query [0:{len(source)}] {source!r}"],
         _debug_segments(segments, source),

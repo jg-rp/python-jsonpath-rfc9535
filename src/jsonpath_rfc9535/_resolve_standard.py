@@ -12,14 +12,14 @@ from typing import TYPE_CHECKING
 
 from . import _ast
 from ._ast import *
+from ._node import Node, NodeList
 from ._nothing import NOTHING
 from ._resolver import Resolver_
 from .exceptions import JSONPathRecursionError
 from .functions import NODES_TYPE
-from .node import Node, NodeList
 
 if TYPE_CHECKING:
-    from .environment import JSONPathEnvironment
+    from ._environment import JSONPathEnvironment
 
 
 class StandardResolver(Resolver_):

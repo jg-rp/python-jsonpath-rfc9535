@@ -4,9 +4,9 @@ from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
 from . import functions
+from ._node import JSONPathNode, JSONPathNodeList
 from ._parser import Parser
 from ._parser_standard import StandardParser
-from .node import JSONPathNode, JSONPathNodeList
 from .query import JSONPathQuery
 
 if TYPE_CHECKING:
@@ -78,12 +78,12 @@ class JSONPathEnvironment:
             )
         )
 
-    def compile(self, source: str) -> JSONPathQuery:
-        """Prepare JSONPath query `source` for repeated application to different data.
+    def compile(self, expr: str) -> JSONPathQuery:
+        """Prepare JSONPath query `expr` for repeated application to different data.
 
         Parameters
         ----------
-        source
+        expr
             A JSONPath query expression.
 
         Returns
@@ -96,70 +96,70 @@ class JSONPathEnvironment:
         JSONPathNameError
             If a function extension can not be resolved.
         JSONPathRecursionError
-            If `source` is crafted in such a way to hit Python's recursion limit.
+            If `expr` is crafted in such a way to hit Python's recursion limit.
             `JSONPathRecursionError` inherits from `RecursionError` too.
         JSONPathSyntaxError
-            If `source` is syntactically invalid.
+            If `expr` is syntactically invalid.
         JSONPathTypeError
-            If `source` is semantically invalid - Calling a function extension with
+            If `expr` is semantically invalid - Calling a function extension with
             arguments of the wrong type or arity, for example.
         """
-        return self.parser.parse(self, source)
+        return self.parser.parse(self, expr)
 
-    def parse(self, source: str) -> JSONPathQuery:
+    def parse(self, expr: str) -> JSONPathQuery:
         """An alias for `compile`.
 
         See Also
         --------
         compile
         """
-        return self.parser.parse(self, source)
+        return self.parser.parse(self, expr)
 
-    def find(self, source: str, data: object) -> JSONPathNodeList:
-        """Return values found by apply query expression `source` to `data`.
+    def find(self, expr: str, data: object) -> JSONPathNodeList:
+        """Return nodes found by apply query expression `expr` to `data`.
 
         Parameters
         ----------
-        source
+        expr
             A JSONPath query expression.
         data
-            JSON-like data to apply `source` to.
+            JSON-like data to apply `expr` to.
 
         Returns
         -------
         JSONPathNodeList
-            The list of nodes found by applying `source` to `data`
+            A list of JSON-like values and their location in `data`.
 
         Raises
         ------
         JSONPathNameError
             If a function extension can not be resolved.
         JSONPathRecursionError
-            If `source` is crafted in such a way to hit Python's recursion limit. Or if
+            If `expr` is crafted in such a way to hit Python's recursion limit. Or if
             a descendent segment visits nodes to a depth that exceeds the configured
             `max_recursion_depth`.
         JSONPathSyntaxError
-            If `source` is syntactically invalid.
+            If `expr` is syntactically invalid.
         JSONPathTypeError
-            If `source` is semantically invalid - Calling a function extension with
+            If `expr` is semantically invalid - Calling a function extension with
             arguments of the wrong type or arity, for example.
         """
-        return self.parser.parse(self, source).find(data)
+        return self.parser.parse(self, expr).find(data)
 
-    def findall(self, source: str, data: object) -> list[object]:
-        """Return values found by apply query expression `source` to `data`.
+    def findall(self, expr: str, data: object) -> list[object]:
+        """Return values found by apply query expression `expr` to `data`.
 
         Parameters
         ----------
-        source
+        expr
             A JSONPath query expression.
         data
-            JSON-like data to apply `source` to.
+            JSON-like data to apply `expr` to.
 
         Returns
         -------
         list[object]
-            All values found by applying `source` to `data`.
+            All values found by applying `expr` to `data`.
 
         Raises
         ------
@@ -170,18 +170,17 @@ class JSONPathEnvironment:
         --------
         find
         """
-        return self.parser.parse(self, source).findall(data)
+        return self.parser.parse(self, expr).findall(data)
 
-    def finditer(self, source: str, data: object) -> Iterable[JSONPathNode]:
-        """Generate a `JSONPathNode` instance for each match of query expression `source`
-        in `data`.
+    def finditer(self, expr: str, data: object) -> Iterable[JSONPathNode]:
+        """Generate nodes from applying query expression `expr` to `data`.
 
         Parameters
         ----------
-        source
+        expr
             A JSONPath query expression.
         data
-            JSON-like data to apply `source` to.
+            JSON-like data to apply `expr` to.
 
         Yields
         ------
@@ -197,17 +196,17 @@ class JSONPathEnvironment:
         --------
         find
         """
-        return self.parser.parse(self, source).finditer(data)
+        return self.parser.parse(self, expr).finditer(data)
 
-    def search(self, source: str, data: object) -> JSONPathNode | None:
-        """Return the first node found by applying query expression `source` to `data`.
+    def search(self, expr: str, data: object) -> JSONPathNode | None:
+        """Return the first node found by applying query expression `expr` to `data`.
 
         Parameters
         ----------
-        source
+        expr
             A JSONPath query expression.
         data
-            JSON-like data to apply `source` to.
+            JSON-like data to apply `expr` to.
 
         Returns
         -------
@@ -224,13 +223,13 @@ class JSONPathEnvironment:
         --------
         find
         """
-        return self.parser.parse(self, source).find_one(data)
+        return self.parser.parse(self, expr).find_one(data)
 
-    def find_one(self, source: str, data: object) -> JSONPathNode | None:
+    def find_one(self, expr: str, data: object) -> JSONPathNode | None:
         """An alias for `search`.
 
         See Also
         --------
         search
         """
-        return self.parser.parse(self, source).find_one(data)
+        return self.parser.parse(self, expr).find_one(data)

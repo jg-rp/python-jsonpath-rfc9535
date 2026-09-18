@@ -9,12 +9,12 @@ import regex as re
 from iregexp_check import check
 
 from ._lru_cache import LRUCache, ThreadSafeLRUCache
+from ._node import BasicNodeList
 from ._nothing import NOTHING
 from .exceptions import JSONPathError
-from .node import BasicNodeList
 
 if TYPE_CHECKING:
-    from .node import NodeList
+    from ._node import NodeList
 
 LOGICAL_TYPE: Literal[1] = 1
 NODES_TYPE: Literal[2] = 2

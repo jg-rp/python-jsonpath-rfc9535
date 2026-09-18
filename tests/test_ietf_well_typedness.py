@@ -45,6 +45,7 @@ from collections.abc import Sequence
 import pytest
 
 from jsonpath_rfc9535 import JSONPathEnvironment
+from jsonpath_rfc9535._node import JSONPathNodeList
 from jsonpath_rfc9535.exceptions import JSONPathTypeError
 from jsonpath_rfc9535.functions import (
     LOGICAL_TYPE,
@@ -53,7 +54,6 @@ from jsonpath_rfc9535.functions import (
     ExpressionType,
     FunctionExtension,
 )
-from jsonpath_rfc9535.node import JSONPathNodeList
 
 
 @dataclasses.dataclass

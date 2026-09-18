@@ -1,4 +1,4 @@
-from .node import NodeList
+from ._node import NodeList
 
 
 class _Nothing:

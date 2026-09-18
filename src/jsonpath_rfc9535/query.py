@@ -3,14 +3,14 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
+from ._node import JSONPathNode, JSONPathNodeList
 from ._resolve_standard import StandardResolver
 from ._resolver_basic import BasicResolver
 from ._serialize import canonical_path
-from .node import JSONPathNode, JSONPathNodeList
 
 if TYPE_CHECKING:
     from ._ast import Segment
-    from .environment import JSONPathEnvironment
+    from ._environment import JSONPathEnvironment
 
 
 class JSONPathQuery:

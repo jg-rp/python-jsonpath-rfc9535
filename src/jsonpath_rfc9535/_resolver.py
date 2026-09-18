@@ -4,11 +4,11 @@ from collections.abc import Iterable, Sequence
 from typing import TYPE_CHECKING, Protocol
 
 from ._ast import Segment
+from ._node import BasicNodeList, Node, NodeList
 from ._nothing import NOTHING
-from .node import BasicNodeList, Node, NodeList
 
 if TYPE_CHECKING:
-    from .environment import JSONPathEnvironment
+    from ._environment import JSONPathEnvironment
 
 
 class Resolver(Protocol):

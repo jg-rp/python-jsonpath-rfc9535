@@ -11,7 +11,7 @@ from .exceptions import JSONPathRecursionError, JSONPathSyntaxError
 from .query import JSONPathQuery
 
 if TYPE_CHECKING:
-    from .environment import JSONPathEnvironment
+    from ._environment import JSONPathEnvironment
 
 
 class StandardParser(Parser_):

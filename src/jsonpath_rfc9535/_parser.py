@@ -16,7 +16,7 @@ from .functions import LOGICAL_TYPE, NODES_TYPE, VALUE_TYPE, ExpressionType
 from .query import JSONPathQuery
 
 if TYPE_CHECKING:
-    from .environment import JSONPathEnvironment
+    from ._environment import JSONPathEnvironment
 
 _RE_ESCAPE_U = re.compile(r"(\\u[0-9a-dA-F]{4}|\\.)")
 
@@ -222,6 +222,7 @@ class Parser_(ABC):
         n = int(value)
 
         if n < self.env.min_index or n > self.env.max_index:
+            # TODO: Different exception?
             raise JSONPathSyntaxError(
                 f"index out of range {n}",
                 token,
