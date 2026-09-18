@@ -57,6 +57,7 @@ mprofile*
 # Documentation
 docs/_build/
 site/
+.doctrees
 
 # PyBuilder
 target/
@@ -94,6 +95,6 @@ cts.json
 # System
 .DS_Store
 
-# Docs build
-site/
-.doctrees
+# Profiling
+*.bin
+*.html

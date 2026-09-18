@@ -1,8 +1,8 @@
 import dataclasses
 import json
-import timeit
+import tracemalloc
 
-from jsonpath_rfc9535 import JSONPathQuery, compile
+from jsonpath_rfc9535 import compile
 
 
 @dataclasses.dataclass
@@ -46,29 +46,22 @@ QUERIES = {
     ),
 }
 
-
-def go(query: JSONPathQuery, data: object) -> None:
-    query.find(data)
-
-
-NUMBER = 1
-REPEAT = 5
-
-print(f"{'Benchmark':<35} | {'Min (s)':<10} | {'Mean (s)':<10}")
-print("-" * 62)
+print(f"{'Profile':<35} | {'Mem (MB)':<10} | {'Peak Mem (MB)':<10}")
+print("-" * 66)
 
 for fixture in FIXTURES:
-    for q_name, segments in QUERIES.items():
-        bench_name = f"{fixture.name}:{q_name}"
+    for name, query in QUERIES.items():
+        profile_name = f"{fixture.name}:{name}"
 
-        times = timeit.repeat(
-            stmt=lambda segments=segments, fixture=fixture: go(segments, fixture.data),
-            repeat=REPEAT,
-            number=NUMBER,
-        )
+        tracemalloc.start()
 
-        per_run_times = [t / NUMBER for t in times]
-        min_time = min(per_run_times)
-        mean_time = sum(per_run_times) / len(per_run_times)
+        _ = query.find(fixture.data)
 
-        print(f"{bench_name:<35} | {min_time:<10.4f} | {mean_time:<10.4f}")
+        eval_current, eval_peak = tracemalloc.get_traced_memory()
+        tracemalloc.reset_peak()
+        tracemalloc.stop()
+
+        mem = eval_current / (1024 * 1024)
+        peak = eval_peak / (1024 * 1024)
+
+        print(f"{profile_name:<35} | {mem:<10.4f} | {peak:<10.4f}")

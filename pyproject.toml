@@ -49,6 +49,14 @@ dependencies = [
     "types-regex>=2026.8.31.20260901",
 ]
 
+[tool.hatch.envs.benchmark]
+template = "default"
+extra-dependencies = [
+    "msgspec",
+    "memray",
+]
+
+
 [tool.hatch.envs.default.scripts]
 cov = "pytest --cov=jsonpath_rfc9535 tests/"
 docs-build = "sphinx-build -d .doctrees -b html docs site --fail-on-warning {args}"
