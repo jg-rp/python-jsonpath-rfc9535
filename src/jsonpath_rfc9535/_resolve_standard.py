@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 from . import _ast
 from ._ast import *
 from ._nothing import NOTHING
+from ._resolver import Resolver_
 from .exceptions import JSONPathRecursionError
 from .functions import NODES_TYPE
 from .node import Node, NodeList
@@ -21,7 +22,7 @@ if TYPE_CHECKING:
     from .environment import JSONPathEnvironment
 
 
-class StandardResolver:
+class StandardResolver(Resolver_):
     """A JSONPath evaluator that keeps track of nodes and their locations."""
 
     __slots__ = ("env", "root")
@@ -67,39 +68,39 @@ class StandardResolver:
         match selector:
             case (_ast.NAME_SELECTOR, _, name):
                 if type(obj) is dict and name in obj:
-                    yield new_child(node, name, obj[name])
+                    yield self.new_child(node, name, obj[name])
 
             case (_ast.INDEX_SELECTOR, _, index):
                 if type(obj) is list and len(obj) >= abs(index) + int(index >= 0):
                     if index < 0 and len(obj) >= abs(index):
                         index = len(obj) + index
 
-                    yield new_child(node, index, obj[index])
+                    yield self.new_child(node, index, obj[index])
 
             case (_ast.SLICE_SELECTOR, _, slice_):
                 if type(obj) is list and slice_.step != 0:
                     for i, elem in zip(range(*slice_.indices(len(obj))), obj[slice_]):
-                        yield new_child(node, i, elem)
+                        yield self.new_child(node, i, elem)
 
             case (_ast.WILDCARD_SELECTOR, _):
                 if type(obj) is dict:
                     for k, v in obj.items():
-                        yield new_child(node, k, v)
+                        yield self.new_child(node, k, v)
 
                 elif type(obj) is list:
                     for i, elem in enumerate(obj):
-                        yield new_child(node, i, elem)
+                        yield self.new_child(node, i, elem)
 
             case (_ast.FILTER_SELECTOR, _, expr):
                 if type(obj) is dict:
                     for k, v in obj.items():
-                        if truthy(self._evaluate_expression(expr, k, v)):
-                            yield new_child(node, k, v)
+                        if self.truthy(self._evaluate_expression(expr, k, v)):
+                            yield self.new_child(node, k, v)
 
                 elif type(obj) is list:
                     for i, elem in enumerate(obj):
-                        if truthy(self._evaluate_expression(expr, i, elem)):
-                            yield new_child(node, i, elem)
+                        if self.truthy(self._evaluate_expression(expr, i, elem)):
+                            yield self.new_child(node, i, elem)
 
     def _evaluate_expression(
         self,
@@ -119,21 +120,21 @@ class StandardResolver:
                 return value
 
             case (_ast.NOT_EXPR, _, right):
-                return not truthy(
+                return not self.truthy(
                     self._evaluate_expression(right, current_key, current_value)
                 )
 
             case (_ast.AND_EXPR, _, left, right):
-                return truthy(
+                return self.truthy(
                     self._evaluate_expression(left, current_key, current_value)
-                ) and truthy(
+                ) and self.truthy(
                     self._evaluate_expression(right, current_key, current_value)
                 )
 
             case (_ast.OR_EXPR, _, left, right):
-                return truthy(
+                return self.truthy(
                     self._evaluate_expression(left, current_key, current_value)
-                ) or truthy(
+                ) or self.truthy(
                     self._evaluate_expression(right, current_key, current_value)
                 )
 
@@ -146,7 +147,7 @@ class StandardResolver:
                 if isinstance(right_, NodeList) and len(right_) == 1:
                     right_ = right_[0][0]
 
-                return eq(left_, right_)
+                return self.eq(left_, right_)
 
             case (_ast.NE_EXPR, _, left, right):
                 left_ = self._evaluate_expression(left, current_key, current_value)
@@ -157,7 +158,7 @@ class StandardResolver:
                 if isinstance(right_, NodeList) and len(right_) == 1:
                     right_ = right_[0][0]
 
-                return not eq(left_, right_)
+                return not self.eq(left_, right_)
 
             case (_ast.LT_EXPR, _, left, right):
                 left_ = self._evaluate_expression(left, current_key, current_value)
@@ -168,7 +169,7 @@ class StandardResolver:
                 if isinstance(right_, NodeList) and len(right_) == 1:
                     right_ = right_[0][0]
 
-                return lt(left_, right_)
+                return self.lt(left_, right_)
 
             case (_ast.LE_EXPR, _, left, right):
                 left_ = self._evaluate_expression(left, current_key, current_value)
@@ -179,7 +180,7 @@ class StandardResolver:
                 if isinstance(right_, NodeList) and len(right_) == 1:
                     right_ = right_[0][0]
 
-                return lt(left_, right_) or eq(left_, right_)
+                return self.lt(left_, right_) or self.eq(left_, right_)
 
             case (_ast.GT_EXPR, _, left, right):
                 left_ = self._evaluate_expression(left, current_key, current_value)
@@ -190,7 +191,7 @@ class StandardResolver:
                 if isinstance(right_, NodeList) and len(right_) == 1:
                     right_ = right_[0][0]
 
-                return lt(right_, left_)
+                return self.lt(right_, left_)
 
             case (_ast.GE_EXPR, _, left, right):
                 left_ = self._evaluate_expression(left, current_key, current_value)
@@ -201,7 +202,7 @@ class StandardResolver:
                 if isinstance(right_, NodeList) and len(right_) == 1:
                     right_ = right_[0][0]
 
-                return lt(right_, left_) or eq(left_, right_)
+                return self.lt(right_, left_) or self.eq(left_, right_)
 
             case (_ast.ABSOLUTE_QUERY_EXPR, _, segments):
                 return NodeList(self.resolve(self.env, segments, "$", self.root))
@@ -250,62 +251,15 @@ class StandardResolver:
                 for k, v in obj.items():
                     vt = type(v)
                     if isinstance(k, str) and (vt is list or vt is dict):
-                        yield from visit_(new_child(node, k, v), depth + 1)
+                        yield from visit_(self.new_child(node, k, v), depth + 1)
 
             elif type(obj) is list:
                 for i, elem in enumerate(obj):
                     et = type(elem)
                     if et is list or et is dict:
-                        yield from visit_(new_child(node, i, elem), depth + 1)
+                        yield from visit_(self.new_child(node, i, elem), depth + 1)
 
         return visit_(node, 1)
 
-
-def new_child(node: Node, key: str | int, value: object) -> Node:
-    return (value, node[1] + (key,), node)
-
-
-def truthy(obj: object) -> bool:
-    if isinstance(obj, NodeList):
-        return len(obj) > 0
-    if obj is NOTHING:
-        return False
-    if obj is None:
-        return True
-    return bool(obj)
-
-
-def eq(left: object, right: object) -> bool:
-    if isinstance(right, NodeList):
-        left, right = right, left
-
-    if isinstance(left, NodeList):
-        if isinstance(right, NodeList):
-            return left == right
-        if len(left) == 0:
-            return right is NOTHING
-        if len(left) == 1:
-            return left[0] == right
-        return False
-
-    if left is NOTHING and right is NOTHING:
-        return True
-
-    # Remember 1 == True and 0 == False in Python
-    if isinstance(right, bool):
-        left, right = right, left
-
-    if isinstance(left, bool):
-        return isinstance(right, bool) and left == right
-
-    return left == right
-
-
-def lt(left: object, right: object) -> bool:
-    if isinstance(left, str) and isinstance(right, str):
-        return left < right
-
-    if isinstance(left, (int, float)) and isinstance(right, (int, float)):
-        return left < right
-
-    return False
+    def new_child(self, node: Node, key: str | int, value: object) -> Node:
+        return (value, node[1] + (key,), node)

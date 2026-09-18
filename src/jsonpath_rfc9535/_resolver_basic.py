@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING
 from . import _ast
 from ._ast import *
 from ._nothing import NOTHING
+from ._resolver import Resolver_
 from .exceptions import JSONPathRecursionError
 from .functions import NODES_TYPE
 from .node import BasicNodeList
@@ -21,7 +22,7 @@ if TYPE_CHECKING:
     from .environment import JSONPathEnvironment
 
 
-class BasicResolver:
+class BasicResolver(Resolver_):
     """A memory efficient JSONPath evaluator that does not track node locations."""
 
     __slots__ = ("env", "root")
@@ -91,12 +92,12 @@ class BasicResolver:
             case (_ast.FILTER_SELECTOR, _, expr):
                 if type(obj) is dict:
                     for k, v in obj.items():
-                        if truthy(self._evaluate_expression(expr, k, v)):
+                        if self.truthy(self._evaluate_expression(expr, k, v)):
                             yield v
 
                 elif type(obj) is list:
                     for i, elem in enumerate(obj):
-                        if truthy(self._evaluate_expression(expr, i, elem)):
+                        if self.truthy(self._evaluate_expression(expr, i, elem)):
                             yield elem
 
     def _evaluate_expression(
@@ -117,21 +118,21 @@ class BasicResolver:
                 return value
 
             case (_ast.NOT_EXPR, _, right):
-                return not truthy(
+                return not self.truthy(
                     self._evaluate_expression(right, current_key, current_value)
                 )
 
             case (_ast.AND_EXPR, _, left, right):
-                return truthy(
+                return self.truthy(
                     self._evaluate_expression(left, current_key, current_value)
-                ) and truthy(
+                ) and self.truthy(
                     self._evaluate_expression(right, current_key, current_value)
                 )
 
             case (_ast.OR_EXPR, _, left, right):
-                return truthy(
+                return self.truthy(
                     self._evaluate_expression(left, current_key, current_value)
-                ) or truthy(
+                ) or self.truthy(
                     self._evaluate_expression(right, current_key, current_value)
                 )
 
@@ -144,7 +145,7 @@ class BasicResolver:
                 if isinstance(right_, BasicNodeList) and len(right_) == 1:
                     right_ = right_[0]
 
-                return eq(left_, right_)
+                return self.eq(left_, right_)
 
             case (_ast.NE_EXPR, _, left, right):
                 left_ = self._evaluate_expression(left, current_key, current_value)
@@ -155,7 +156,7 @@ class BasicResolver:
                 if isinstance(right_, BasicNodeList) and len(right_) == 1:
                     right_ = right_[0]
 
-                return not eq(left_, right_)
+                return not self.eq(left_, right_)
 
             case (_ast.LT_EXPR, _, left, right):
                 left_ = self._evaluate_expression(left, current_key, current_value)
@@ -166,7 +167,7 @@ class BasicResolver:
                 if isinstance(right_, BasicNodeList) and len(right_) == 1:
                     right_ = right_[0]
 
-                return lt(left_, right_)
+                return self.lt(left_, right_)
 
             case (_ast.LE_EXPR, _, left, right):
                 left_ = self._evaluate_expression(left, current_key, current_value)
@@ -177,7 +178,7 @@ class BasicResolver:
                 if isinstance(right_, BasicNodeList) and len(right_) == 1:
                     right_ = right_[0]
 
-                return lt(left_, right_) or eq(left_, right_)
+                return self.lt(left_, right_) or self.eq(left_, right_)
 
             case (_ast.GT_EXPR, _, left, right):
                 left_ = self._evaluate_expression(left, current_key, current_value)
@@ -188,7 +189,7 @@ class BasicResolver:
                 if isinstance(right_, BasicNodeList) and len(right_) == 1:
                     right_ = right_[0]
 
-                return lt(right_, left_)
+                return self.lt(right_, left_)
 
             case (_ast.GE_EXPR, _, left, right):
                 left_ = self._evaluate_expression(left, current_key, current_value)
@@ -199,7 +200,7 @@ class BasicResolver:
                 if isinstance(right_, BasicNodeList) and len(right_) == 1:
                     right_ = right_[0]
 
-                return lt(right_, left_) or eq(left_, right_)
+                return self.lt(right_, left_) or self.eq(left_, right_)
 
             case (_ast.ABSOLUTE_QUERY_EXPR, _, segments):
                 return BasicNodeList(self.resolve(self.env, segments, "$", self.root))
@@ -261,52 +262,3 @@ class BasicResolver:
                         yield from visit_(elem, depth + 1)
 
         return visit_(node, 1)
-
-
-# TODO: centralize these in a `Resolver_` base class
-
-
-def truthy(obj: object) -> bool:
-    if isinstance(obj, BasicNodeList):
-        return len(obj) > 0
-    if obj is NOTHING:
-        return False
-    if obj is None:
-        return True
-    return bool(obj)
-
-
-def eq(left: object, right: object) -> bool:
-    if isinstance(right, BasicNodeList):
-        left, right = right, left
-
-    if isinstance(left, BasicNodeList):
-        if isinstance(right, BasicNodeList):
-            return left == right
-        if len(left) == 0:
-            return right is NOTHING
-        if len(left) == 1:
-            return left[0] == right
-        return False
-
-    if left is NOTHING and right is NOTHING:
-        return True
-
-    # Remember 1 == True and 0 == False in Python
-    if isinstance(right, bool):
-        left, right = right, left
-
-    if isinstance(left, bool):
-        return isinstance(right, bool) and left == right
-
-    return left == right
-
-
-def lt(left: object, right: object) -> bool:
-    if isinstance(left, str) and isinstance(right, str):
-        return left < right
-
-    if isinstance(left, (int, float)) and isinstance(right, (int, float)):
-        return left < right
-
-    return False
