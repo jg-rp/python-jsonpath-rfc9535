@@ -5,7 +5,6 @@ from collections.abc import Iterable
 from ._debug import tree_view
 from ._parser import Parser, Parser_
 from ._parser_standard import StandardParser
-from ._resolve import resolve
 from .environment import JSONPathEnvironment
 from .exceptions import (
     JSONPathError,
@@ -34,7 +33,6 @@ __all__ = (
     "Parser_",
     "StandardParser",
     "parse",
-    "resolve",
     "tree_view",
 )
 

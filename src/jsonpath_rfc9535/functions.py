@@ -11,6 +11,7 @@ from iregexp_check import check
 from ._lru_cache import LRUCache, ThreadSafeLRUCache
 from ._nothing import NOTHING
 from .exceptions import JSONPathError
+from .node import BasicNodeList
 
 if TYPE_CHECKING:
     from .node import NodeList
@@ -141,9 +142,9 @@ class Value(FunctionExtension):
     arg_types: Sequence[ExpressionType] = [NODES_TYPE]
     return_type: ExpressionType = VALUE_TYPE
 
-    def __call__(self, nodes: NodeList) -> object:
+    def __call__(self, nodes: NodeList | BasicNodeList) -> object:
         if len(nodes) == 1:
-            return nodes[0][0]
+            return nodes[0] if isinstance(nodes, BasicNodeList) else nodes[0][0]
         return NOTHING
 
 

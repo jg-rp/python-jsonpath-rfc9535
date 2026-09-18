@@ -48,7 +48,7 @@ QUERIES = {
 
 
 def go(query: JSONPathQuery, data: object) -> None:
-    query.find(data)
+    query.findall(data)
 
 
 NUMBER = 1

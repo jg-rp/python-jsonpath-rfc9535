@@ -51,3 +51,18 @@ def test_compliance(case: Case) -> None:
 def test_invalid_selectors(case: Case) -> None:
     with pytest.raises(jsonpath.JSONPathError):
         jsonpath.parse(case.selector)
+
+
+@pytest.mark.parametrize(
+    "case",
+    [c for c in TEST_CASES if not c.invalid_selector],
+    ids=operator.attrgetter("name"),
+)
+def test_basic_compliance(case: Case) -> None:
+    values = jsonpath.findall(case.selector, case.document)
+
+    if case.results is not None:
+        assert isinstance(case.results_paths, list)
+        assert values in case.results
+    else:
+        assert values == case.result

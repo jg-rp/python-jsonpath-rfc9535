@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from ._serialize import canonical_string
 
-type Node = tuple[object, tuple[int | str, ...], object, Node | None]
-"""JSONPath tuple node `(value, location, root, parent)`.
+type Node = tuple[object, tuple[int | str, ...], Node | None]
+"""JSONPath tuple node `(value, location, parent)`.
 
 Tuple nodes are a compact representation of transitive nodes created during JSONPath
 evaluation. The only time you'd need to work with tuple nodes directly is when
@@ -28,6 +28,10 @@ class NodeList(list[Node]):
 
     def __str__(self) -> str:
         return f"NodeList{super().__str__()}"
+
+
+class BasicNodeList(list[object]):
+    pass
 
 
 class JSONPathNode:
@@ -55,7 +59,7 @@ class JSONPathNode:
     def __init__(self, node: Node) -> None:
         self._value = node[0]
         self.location = node[1]
-        self._parent = node[3]
+        self._parent = node[2]
 
     @property
     def value(self) -> object:

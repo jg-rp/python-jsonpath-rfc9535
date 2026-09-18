@@ -3,7 +3,8 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import TYPE_CHECKING
 
-from ._resolve import resolve
+from ._resolve_standard import StandardResolver
+from ._resolver_basic import BasicResolver
 from ._serialize import canonical_path
 from .node import JSONPathNode, JSONPathNodeList
 
@@ -57,7 +58,7 @@ class JSONPathQuery:
             If a descendent segment visits nodes to a depth that exceeds the configured
             `max_recursion_depth`.
         """
-        return [node[0] for node in resolve(self.env, self.segments, "$", data)]
+        return list(BasicResolver.resolve(self.env, self.segments, "$", data))
 
     def finditer(self, data: object) -> Iterable[JSONPathNode]:
         """Generate `JSONPathNode` instances for each match of this query in `data`.
@@ -78,7 +79,7 @@ class JSONPathQuery:
             If a descendent segment visits nodes to a depth that exceeds the configured
             `max_recursion_depth`.
         """
-        for node in resolve(self.env, self.segments, "$", data):
+        for node in StandardResolver.resolve(self.env, self.segments, "$", data):
             yield JSONPathNode(node)
 
     def find(self, data: object) -> JSONPathNodeList:

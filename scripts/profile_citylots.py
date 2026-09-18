@@ -55,7 +55,7 @@ for fixture in FIXTURES:
 
         tracemalloc.start()
 
-        _ = query.find(fixture.data)
+        _ = query.findall(fixture.data)
 
         eval_current, eval_peak = tracemalloc.get_traced_memory()
         tracemalloc.reset_peak()
