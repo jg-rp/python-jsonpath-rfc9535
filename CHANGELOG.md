@@ -1,5 +1,29 @@
 # Python JSONPath RFC 9535 Change Log
 
+## Version 2.0.0 (unreleased)
+
+- Dropped support for Python 3.8, 3.9, 3.10 and 3.11.
+- Added a configurable regex cache to the standard `match` and `search` functions.
+- Added detailed error messages to JSONPath exceptions.
+- Added support for multiple JSONPath evaluation strategies. Initially there's the standard strategy that includes location information for every node, and the faster, more memory efficient "basic" strategy that does not keep track of node location.
+- Removed non-deterministic features for validating the CTS.
+
+**API changes**
+
+- Added `jsonpath_rfc9535.parse()` and `JSONPathEnvironment.parse()` as aliases for `jsonpath_rfc9535.compile()` and `JSONPathEnvironment.compile()`.
+- Added `jsonpath_rfc9535.search()`, `JSONPathEnvironment.search()` and `JSONPathQuery.search()` as aliases for `find_one()`.
+- Added `jsonpath_rfc9535.findall()`, `JSONPathEnvironment.findall()` and `JSONPathQuery.findall()`, which is like `find()` but returns a list of JSON0like values not `JSONPathNode` instances.
+
+- `JSONPathNode.parent` is now a method, not a property. Parent `JSONPathNode` instances are instantiated lazily from an internal "tuple node".
+- Removed `JSONPathNode.root`. It was meant for internal use only.
+- Removed `JSONPathNode.new_child()`. It was meant for internal use only.
+- Removed `JSONPathNodeList.empty()`. It's a list subclass, use `if not nodes` or `if nodes`.
+- Removed `JSONPathLexerError` and `JSONPathIndexError`.
+- Renamed `JSONPathEnvironment.function_extensions` to `JSONPathEnvironment.functions`.
+- Removed `JSONPathEnvironment.validate_function_extension_signature()` and `JSONPathEnvironment.check_well_typedness()`. These now live on the parser.
+- Changed `JSONPathEnvironment` class variables `parser_class`, `max_index`, `min_index` and `max_recursion_depth` to be instance variables. The `JSONPathEnvironment` initializer now accepts a these as arguments.
+- Changed `ExpressionType` (for defining function extensions) from an enum to a type alias and distinct constants `LOGICAL_TYPE`, `NODES_TYPE` and `VALUE_TYPE`.
+
 ## Version 1.0.0
 
 Bump to stable status.

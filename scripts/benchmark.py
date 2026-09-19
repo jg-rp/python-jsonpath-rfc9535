@@ -1,20 +1,14 @@
 import json
 import timeit
-from typing import Any
-from typing import Mapping
 from typing import NamedTuple
-from typing import Sequence
-from typing import Union
-
-# ruff: noqa: D100 D101 D103 T201
 
 
 class CTSCase(NamedTuple):
     query: str
-    data: Union[Sequence[Any], Mapping[str, Any]]
+    data: object
 
 
-def valid_queries() -> Sequence[CTSCase]:
+def valid_queries() -> list[CTSCase]:
     with open("tests/cts/cts.json") as fd:
         data = json.load(fd)
 
@@ -27,89 +21,46 @@ def valid_queries() -> Sequence[CTSCase]:
 
 QUERIES = valid_queries()
 
-COMPILE_AND_FIND_SETUP = "from jsonpath_rfc9535 import find"
+benchmarks: dict[str, tuple[str, str]] = {
+    "parse and evaluate (nodes)": (
+        "import jsonpath_rfc9535 as jsonpath",
+        "for source, data in QUERIES:\n    jsonpath.find(source, data)",
+    ),
+    "parse and evaluate (values)": (
+        "import jsonpath_rfc9535 as jsonpath",
+        "for source, data in QUERIES:\n    jsonpath.findall(source, data)",
+    ),
+    "just parse": (
+        "import jsonpath_rfc9535 as jsonpath",
+        "for source, _ in QUERIES:\n    jsonpath.parse(source)",
+    ),
+    "just evaluate (nodes)": (
+        "import jsonpath_rfc9535 as jsonpath\ncompiled_queries = [(jsonpath.parse(q), d) for q, d in QUERIES]",
+        "for query, data in compiled_queries:\n    query.find(data)",
+    ),
+    "just evaluate (values)": (
+        "import jsonpath_rfc9535 as jsonpath\ncompiled_queries = [(jsonpath.parse(q), d) for q, d in QUERIES]",
+        "for query, data in compiled_queries:\n    query.findall(data)",
+    ),
+}
 
-COMPILE_AND_FIND_STMT = """\
-for path, data in QUERIES:
-    list(find(path, data))"""
+NUMBER = 100
+REPEAT = 3
 
-COMPILE_AND_FIND_VALUES_STMT = """\
-for path, data in QUERIES:
-    [node.value for node in find(path, data)]"""
+title = f"Benchmark {len(QUERIES) * NUMBER:,} queries"
+print(f"{title:<35} | {'Min (s)':<10} | {'Mean (s)':<10}")
+print("-" * 62)
 
-JUST_COMPILE_SETUP = "from jsonpath_rfc9535 import compile"
-
-JUST_COMPILE_STMT = """\
-for path, _ in QUERIES:
-    compile(path)"""
-
-JUST_FIND_SETUP = """\
-from jsonpath_rfc9535 import compile
-compiled_queries = [(compile(q), d) for q, d in QUERIES]
-"""
-
-JUST_FIND_STMT = """\
-for path, data in compiled_queries:
-    list(path.find(data))"""
-
-JUST_FIND_VALUES_STMT = """\
-for path, data in compiled_queries:
-    [node.value for node in path.find(data)]"""
-
-
-def benchmark(number: int = 100, best_of: int = 3) -> None:
-    print(f"repeating {len(QUERIES)} queries {number} times, best of {best_of} rounds")
-
-    results = timeit.repeat(
-        COMPILE_AND_FIND_STMT,
-        setup=COMPILE_AND_FIND_SETUP,
+for bench_name, (setup, stmt) in benchmarks.items():
+    times = timeit.repeat(
+        stmt=stmt,
+        setup=setup,
         globals={"QUERIES": QUERIES},
-        number=number,
-        repeat=best_of,
+        repeat=REPEAT,
+        number=NUMBER,
     )
 
-    print("compile and find".ljust(30), f"\033[92m{min(results):.3f}\033[0m")
+    min_time = min(times)
+    mean_time = sum(times) / len(times)
 
-    results = timeit.repeat(
-        COMPILE_AND_FIND_VALUES_STMT,
-        setup=COMPILE_AND_FIND_SETUP,
-        globals={"QUERIES": QUERIES},
-        number=number,
-        repeat=best_of,
-    )
-
-    print("compile and find (values)".ljust(30), f"{min(results):.3f}")
-
-    results = timeit.repeat(
-        JUST_COMPILE_STMT,
-        setup=JUST_COMPILE_SETUP,
-        globals={"QUERIES": QUERIES},
-        number=number,
-        repeat=best_of,
-    )
-
-    print("just compile".ljust(30), f"{min(results):.3f}")
-
-    results = timeit.repeat(
-        JUST_FIND_STMT,
-        setup=JUST_FIND_SETUP,
-        globals={"QUERIES": QUERIES},
-        number=number,
-        repeat=best_of,
-    )
-
-    print("just find".ljust(30), f"\033[92m{min(results):.3f}\033[0m")
-
-    results = timeit.repeat(
-        JUST_FIND_VALUES_STMT,
-        setup=JUST_FIND_SETUP,
-        globals={"QUERIES": QUERIES},
-        number=number,
-        repeat=best_of,
-    )
-
-    print("just find (values)".ljust(30), f"{min(results):.3f}")
-
-
-if __name__ == "__main__":
-    benchmark()
+    print(f"{bench_name:<35} | {min_time:<10.4f} | {mean_time:<10.4f}")
