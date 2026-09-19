@@ -4,13 +4,13 @@ API Docs
 .. autoclass:: jsonpath_rfc9535.JSONPathEnvironment
     :members:
 
-.. autotype:: jsonpath_rfc9535.node.Node
+.. autotype:: jsonpath_rfc9535.Node
 
-.. autoclass:: jsonpath_rfc9535.node.NodeList
+.. autoclass:: jsonpath_rfc9535.NodeList
 
-.. autoclass:: jsonpath_rfc9535.node.JSONPathNode
+.. autoclass:: jsonpath_rfc9535.JSONPathNode
 
-.. autoclass:: jsonpath_rfc9535.node.JSONPathNodeList
+.. autoclass:: jsonpath_rfc9535.JSONPathNodeList
 
 Function Extensions
 -------------------
