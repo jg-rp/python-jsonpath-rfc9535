@@ -7,8 +7,9 @@ def test_parent() -> None:
     node = find_one(query, data)
     assert node is not None
     assert node.value == 1
-    assert node.parent is not None
-    assert node.parent.value == data["a"]["b"]
+    parent = node.parent()
+    assert parent is not None
+    assert parent.value == data["a"]["b"]
 
 
 def test_parent_of_root() -> None:
@@ -17,7 +18,7 @@ def test_parent_of_root() -> None:
     node = find_one(query, data)
     assert node is not None
     assert node.value == data
-    assert node.parent is None
+    assert node.parent() is None
 
 
 def test_set_dict_value() -> None:

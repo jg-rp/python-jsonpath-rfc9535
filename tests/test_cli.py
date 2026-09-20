@@ -6,14 +6,11 @@ import pathlib
 
 import pytest
 
+from jsonpath_rfc9535 import JSONPathSyntaxError, JSONPathTypeError
 from jsonpath_rfc9535.__about__ import __version__
-from jsonpath_rfc9535.cli import handle_path_command
-from jsonpath_rfc9535.cli import setup_parser
-from jsonpath_rfc9535.exceptions import JSONPathIndexError
-from jsonpath_rfc9535.exceptions import JSONPathSyntaxError
-from jsonpath_rfc9535.exceptions import JSONPathTypeError
+from jsonpath_rfc9535.cli import handle_path_command, setup_parser
 
-SAMPLE_DATA = {
+SAMPLE_DATA: dict[str, object] = {
     "categories": [
         {
             "name": "footwear",
@@ -221,7 +218,7 @@ def test_jsonpath_index_error(
 
     captured = capsys.readouterr()
     assert err.value.code == 1
-    assert captured.err.startswith("index error")
+    assert captured.err.startswith("syntax error")
 
 
 def test_jsonpath_index_error_debug(
@@ -231,7 +228,7 @@ def test_jsonpath_index_error_debug(
     """Test that we handle a JSONPath with a syntax error."""
     args = parser.parse_args(["--debug", "-q", f"$.foo[{2**53}]", "-f", sample_target])
 
-    with pytest.raises(JSONPathIndexError):
+    with pytest.raises(JSONPathSyntaxError):
         handle_path_command(args)
 
 
@@ -246,7 +243,6 @@ def test_jsonpath(
     )
 
     handle_path_command(args)
-    args.output.flush()
 
     with open(outfile, "r") as fd:
-        assert len(json.load(fd)) == 4  # noqa: PLR2004
+        assert len(json.load(fd)) == 4
