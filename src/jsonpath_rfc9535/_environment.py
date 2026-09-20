@@ -22,6 +22,9 @@ class JSONPathEnvironment:
         The maximum integer allowed when selecting array items by index.
     min_index
         The minimum integer allowed when selecting array items by index.
+    max_expression_depth
+        The maximum number of nested expressions allowed in a query before a
+        `JSONPathRecursionError` is raised.
     max_recursion_depth
         The maximum depth the descendant segment can go before a `JSONPathRecursionError`
         is raised.
@@ -42,10 +45,12 @@ class JSONPathEnvironment:
         max_index: int = (2**53) - 1,
         min_index: int = -(2**53) + 1,
         max_recursion_depth: int = 100,
+        max_expression_depth: int = 30,
         parser: Parser = StandardParser,
     ) -> None:
 
         self.max_recursion_depth = max_recursion_depth
+        self.max_expression_depth = max_expression_depth
         self.max_index = max_index
         self.min_index = min_index
 
@@ -97,7 +102,6 @@ class JSONPathEnvironment:
             If a function extension can not be resolved.
         JSONPathRecursionError
             If `expr` is crafted in such a way to hit Python's recursion limit.
-            `JSONPathRecursionError` inherits from `RecursionError` too.
         JSONPathSyntaxError
             If `expr` is syntactically invalid.
         JSONPathTypeError

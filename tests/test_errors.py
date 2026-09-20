@@ -78,10 +78,7 @@ def test_unbalanced_parens(env: JSONPathEnvironment) -> None:
 
 def test_compile_time_recursion_error(env: JSONPathEnvironment) -> None:
     with pytest.raises(JSONPathRecursionError):
-        env.compile("$[?" + "!" * 493 + "@.a]")
-
-    with pytest.raises(RecursionError):
-        env.compile("$[?" + "!" * 493 + "@.a]")
+        env.compile("$[?" + "!" * 50 + "@.a]")
 
 
 def test_single_amp(env: JSONPathEnvironment) -> None:

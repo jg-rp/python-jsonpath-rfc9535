@@ -13,6 +13,7 @@
 - Added `jsonpath_rfc9535.parse()` and `JSONPathEnvironment.parse()` as aliases for `jsonpath_rfc9535.compile()` and `JSONPathEnvironment.compile()`.
 - Added `jsonpath_rfc9535.search()`, `JSONPathEnvironment.search()` and `JSONPathQuery.search()` as aliases for `find_one()`.
 - Added `jsonpath_rfc9535.findall()`, `JSONPathEnvironment.findall()` and `JSONPathQuery.findall()`, which is like `find()` but returns a list of JSON0like values not `JSONPathNode` instances.
+- Added `JSONPathEnvironment.max_expression_depth` to guard against maliciously crafted queries hitting Python's recursion limit during parsing. Now a `JSONPathRecursionError` is raised if `max_expression_depth` is reached.
 
 - `JSONPathNode.parent` is now a method, not a property. Parent `JSONPathNode` instances are instantiated lazily from an internal "tuple node".
 - Removed `JSONPathNode.root`. It was meant for internal use only.

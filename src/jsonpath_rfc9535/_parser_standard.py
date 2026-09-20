@@ -66,6 +66,7 @@ class StandardParser(Parser_):
         return segments
 
     def parse_segments(self) -> Iterable[Segment]:
+        self.raise_for_depth()
         segments: list[Segment] = []
 
         while True:
@@ -273,6 +274,7 @@ class StandardParser(Parser_):
         return (FILTER_SELECTOR, span(token, expr[1]), expr)
 
     def parse_filter_expression(self, *, precedence: int = PREC_LOWEST) -> Expression:
+        self.raise_for_depth()
         left = self.parse_primary()
 
         while True:

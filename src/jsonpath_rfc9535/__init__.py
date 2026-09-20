@@ -71,7 +71,6 @@ def compile(expr: str) -> JSONPathQuery:
         If a function extension can not be resolved.
     JSONPathRecursionError
         If `expr` is crafted in such a way to hit Python's recursion limit.
-        `JSONPathRecursionError` inherits from `RecursionError` too.
     JSONPathSyntaxError
         If `expr` is syntactically invalid.
     JSONPathTypeError

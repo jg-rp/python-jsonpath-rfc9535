@@ -78,10 +78,10 @@ class JSONPathTypeError(DetailedJSONPathError):
     """The exceptions raised when a JSONPath query is not well typed."""
 
 
-class JSONPathRecursionError(JSONPathError, RecursionError):
+class JSONPathRecursionError(JSONPathError):
     """The exception raised when a recursion limit is reached.
 
-    This could be raised at parse time if a JSONPath query is constructed in
-    such a way to hit Python's recursion limit. Or at query resolution time
-    if `max_recursion_depth` is reached by the descendant segment (`..`).
+    This could be raised at parse time if a JSONPath query contains deeply
+    nested expressions. Or at query resolution time if `max_recursion_depth`
+    is reached by the descendant segment (`..`).
     """

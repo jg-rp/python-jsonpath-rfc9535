@@ -9,6 +9,7 @@ from ._ast import *
 from ._tokens import *
 from .exceptions import (
     JSONPathNameError,
+    JSONPathRecursionError,
     JSONPathSyntaxError,
     JSONPathTypeError,
 )
@@ -32,7 +33,16 @@ class Parser(Protocol):
 class Parser_(ABC):
     """A base query parser with methods common to both standard and extra parsers."""
 
-    __slots__ = ("env", "eoi", "length", "pos", "source", "tokens")
+    __slots__ = (
+        "depth",
+        "env",
+        "eoi",
+        "length",
+        "max_depth",
+        "pos",
+        "source",
+        "tokens",
+    )
 
     def __init__(
         self,
@@ -46,6 +56,8 @@ class Parser_(ABC):
         self.length = len(tokens)
         self.pos = 0
         self.eoi: Token = (TOKEN_EOI, self.length, self.length)
+        self.depth = 0
+        self.max_depth = env.max_expression_depth
 
     @abstractmethod
     def parse_query(self) -> tuple[Segment, ...]: ...
@@ -104,6 +116,11 @@ class Parser_(ABC):
             self.pos += 1
             return True
         return False
+
+    def raise_for_depth(self) -> None:
+        self.depth += 1
+        if self.depth > self.max_depth:
+            raise JSONPathRecursionError("maximum recursion depth reached")
 
     def raise_for_not_compared(self, expr: Expression, token: Token) -> None:
         if self.is_literal_expression(expr):
