@@ -140,68 +140,32 @@ class StandardResolver(Resolver_):
 
             case (_ast.EQ_EXPR, _, left, right):
                 left_ = self._evaluate_expression(left, current_key, current_value)
-                if isinstance(left_, NodeList) and len(left_) == 1:
-                    left_ = left_[0][0]
-
                 right_ = self._evaluate_expression(right, current_key, current_value)
-                if isinstance(right_, NodeList) and len(right_) == 1:
-                    right_ = right_[0][0]
-
                 return self.eq(left_, right_)
 
             case (_ast.NE_EXPR, _, left, right):
                 left_ = self._evaluate_expression(left, current_key, current_value)
-                if isinstance(left_, NodeList) and len(left_) == 1:
-                    left_ = left_[0][0]
-
                 right_ = self._evaluate_expression(right, current_key, current_value)
-                if isinstance(right_, NodeList) and len(right_) == 1:
-                    right_ = right_[0][0]
-
                 return not self.eq(left_, right_)
 
             case (_ast.LT_EXPR, _, left, right):
                 left_ = self._evaluate_expression(left, current_key, current_value)
-                if isinstance(left_, NodeList) and len(left_) == 1:
-                    left_ = left_[0][0]
-
                 right_ = self._evaluate_expression(right, current_key, current_value)
-                if isinstance(right_, NodeList) and len(right_) == 1:
-                    right_ = right_[0][0]
-
                 return self.lt(left_, right_)
 
             case (_ast.LE_EXPR, _, left, right):
                 left_ = self._evaluate_expression(left, current_key, current_value)
-                if isinstance(left_, NodeList) and len(left_) == 1:
-                    left_ = left_[0][0]
-
                 right_ = self._evaluate_expression(right, current_key, current_value)
-                if isinstance(right_, NodeList) and len(right_) == 1:
-                    right_ = right_[0][0]
-
                 return self.lt(left_, right_) or self.eq(left_, right_)
 
             case (_ast.GT_EXPR, _, left, right):
                 left_ = self._evaluate_expression(left, current_key, current_value)
-                if isinstance(left_, NodeList) and len(left_) == 1:
-                    left_ = left_[0][0]
-
                 right_ = self._evaluate_expression(right, current_key, current_value)
-                if isinstance(right_, NodeList) and len(right_) == 1:
-                    right_ = right_[0][0]
-
                 return self.lt(right_, left_)
 
             case (_ast.GE_EXPR, _, left, right):
                 left_ = self._evaluate_expression(left, current_key, current_value)
-                if isinstance(left_, NodeList) and len(left_) == 1:
-                    left_ = left_[0][0]
-
                 right_ = self._evaluate_expression(right, current_key, current_value)
-                if isinstance(right_, NodeList) and len(right_) == 1:
-                    right_ = right_[0][0]
-
                 return self.lt(right_, left_) or self.eq(left_, right_)
 
             case (_ast.ABSOLUTE_QUERY_EXPR, _, segments):

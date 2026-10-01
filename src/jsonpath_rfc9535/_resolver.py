@@ -42,31 +42,71 @@ class Resolver_:
         return bool(obj)
 
     def eq(self, left: object, right: object) -> bool:
-        if isinstance(right, BasicNodeList | NodeList):
-            left, right = right, left
-
-        if isinstance(left, BasicNodeList):
-            if isinstance(right, BasicNodeList):
-                return left == right
+        if type(left) is NodeList:
             if len(left) == 0:
-                return right is NOTHING
-            if len(left) == 1:
-                return left[0] == right
-            return False
+                left = NOTHING
+            elif len(left) == 1:
+                left = left[0][0]
+            else:
+                return False
+        elif type(left) is BasicNodeList:
+            if len(left) == 0:
+                left = NOTHING
+            elif len(left) == 1:
+                left = left[0]
+            else:
+                return False
+
+        if type(right) is NodeList:
+            if len(right) == 0:
+                right = NOTHING
+            elif len(right) == 1:
+                right = right[0][0]
+            else:
+                return False
+        elif type(right) is BasicNodeList:
+            if len(right) == 0:
+                right = NOTHING
+            elif len(right) == 1:
+                right = right[0]
+            else:
+                return False
 
         if left is NOTHING and right is NOTHING:
             return True
 
         # Remember 1 == True and 0 == False in Python
-        if isinstance(right, bool):
-            left, right = right, left
-
         if isinstance(left, bool):
             return isinstance(right, bool) and left == right
+
+        if isinstance(right, bool):
+            return False
 
         return left == right
 
     def lt(self, left: object, right: object) -> bool:
+        if type(left) is NodeList:
+            if len(left) == 1:
+                left = left[0][0]
+            else:
+                return False
+        elif type(left) is BasicNodeList:
+            if len(left) == 1:
+                left = left[0]
+            else:
+                return False
+
+        if type(right) is NodeList:
+            if len(right) == 1:
+                right = right[0][0]
+            else:
+                return False
+        elif type(right) is BasicNodeList:
+            if len(right) == 1:
+                right = right[0]
+            else:
+                return False
+
         if isinstance(left, str) and isinstance(right, str):
             return left < right
 

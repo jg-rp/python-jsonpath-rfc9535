@@ -2,7 +2,7 @@ import dataclasses
 import json
 import timeit
 
-from jsonpath_rfc9535 import JSONPathQuery, compile
+from jsonpath_rfc9535 import compile
 
 
 @dataclasses.dataclass
@@ -47,10 +47,6 @@ QUERIES = {
 }
 
 
-def go(query: JSONPathQuery, data: object) -> None:
-    query.findall(data)
-
-
 NUMBER = 1
 REPEAT = 5
 
@@ -58,11 +54,11 @@ print(f"{'Benchmark':<35} | {'Min (s)':<10} | {'Mean (s)':<10}")
 print("-" * 62)
 
 for fixture in FIXTURES:
-    for q_name, segments in QUERIES.items():
+    for q_name, query in QUERIES.items():
         bench_name = f"{fixture.name}:{q_name}"
 
         times = timeit.repeat(
-            stmt=lambda segments=segments, fixture=fixture: go(segments, fixture.data),
+            stmt=lambda query=query, fixture=fixture: query.findall(fixture.data),
             repeat=REPEAT,
             number=NUMBER,
         )

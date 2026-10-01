@@ -120,7 +120,7 @@ class JSONPathEnvironment:
         return self.parser.parse(self, expr)
 
     def find(self, expr: str, data: object) -> JSONPathNodeList:
-        """Return nodes found by apply query expression `expr` to `data`.
+        """Apply JSONPath query `expr` to `data` and return a list of nodes.
 
         Parameters
         ----------
@@ -151,7 +151,7 @@ class JSONPathEnvironment:
         return self.parser.parse(self, expr).find(data)
 
     def findall(self, expr: str, data: object) -> list[object]:
-        """Return values found by apply query expression `expr` to `data`.
+        """Apply JSONPath query `expr` to `data` and return a list of values.
 
         Parameters
         ----------

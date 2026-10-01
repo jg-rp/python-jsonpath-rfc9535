@@ -40,7 +40,7 @@ class JSONPathQuery:
         return isinstance(other, JSONPathQuery) and other.segments == self.segments
 
     def findall(self, data: object) -> list[object]:
-        """Return values found by apply this query to `data`.
+        """Apply this query to `data` and return a list of values.
 
         Parameters
         ----------
@@ -61,7 +61,7 @@ class JSONPathQuery:
         return list(BasicResolver.resolve(self.env, self.segments, "$", data))
 
     def finditer(self, data: object) -> Iterable[JSONPathNode]:
-        """Generate `JSONPathNode` instances for each match of this query in `data`.
+        """Generate nodes by applying this query to `data`.
 
         Parameters
         ----------
@@ -83,7 +83,7 @@ class JSONPathQuery:
             yield JSONPathNode(node)
 
     def find(self, data: object) -> JSONPathNodeList:
-        """Return the list of nodes found by applying this query to `data`.
+        """Apply this query to `data` and return a list of nodes.
 
         Parameters
         ----------
