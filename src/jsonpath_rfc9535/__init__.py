@@ -9,6 +9,7 @@ from ._parser import Parser, Parser_
 from ._parser_standard import StandardParser
 from .exceptions import (
     JSONPathError,
+    JSONPathIndexError,
     JSONPathNameError,
     JSONPathRecursionError,
     JSONPathSyntaxError,
@@ -32,6 +33,7 @@ __all__ = (
     "FunctionExtension",
     "JSONPathEnvironment",
     "JSONPathError",
+    "JSONPathIndexError",
     "JSONPathNameError",
     "JSONPathNode",
     "JSONPathNodeList",

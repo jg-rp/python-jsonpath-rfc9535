@@ -36,7 +36,6 @@ class BasicResolver(Resolver_):
         cls,
         env: JSONPathEnvironment,
         segments: Sequence[Segment],
-        root: str,
         data: object,
     ) -> Iterable[object]:
         return cls(env, data)._resolve(segments)
@@ -167,12 +166,10 @@ class BasicResolver(Resolver_):
                 return self.lt(right_, left_) or self.eq(left_, right_)
 
             case (_ast.ABSOLUTE_QUERY_EXPR, _, segments):
-                return BasicNodeList(self.resolve(self.env, segments, "$", self.root))
+                return BasicNodeList(self.resolve(self.env, segments, self.root))
 
             case (_ast.RELATIVE_QUERY_EXPR, _, segments):
-                return BasicNodeList(
-                    self.resolve(self.env, segments, "@", current_value)
-                )
+                return BasicNodeList(self.resolve(self.env, segments, current_value))
 
             case (_ast.FUNCTION_EXPR, _, name, args):
                 # Functions are validated at parse time.

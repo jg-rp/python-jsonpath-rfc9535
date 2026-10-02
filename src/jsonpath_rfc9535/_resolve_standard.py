@@ -36,13 +36,12 @@ class StandardResolver(Resolver_):
         cls,
         env: JSONPathEnvironment,
         segments: Sequence[Segment],
-        root: str,
         data: object,
     ) -> Iterable[Node]:
-        return cls(env, data)._resolve(segments, root)
+        return cls(env, data)._resolve(segments)
 
-    def _resolve(self, segments: Sequence[Segment], root: str) -> Iterable[Node]:
-        nodes: Iterable[Node] = [(self.root, (root,), None)]
+    def _resolve(self, segments: Sequence[Segment]) -> Iterable[Node]:
+        nodes: Iterable[Node] = [(self.root, (), None)]
         for segment in segments:
             nodes = self._resolve_segment(segment, nodes)
         return nodes
@@ -169,10 +168,10 @@ class StandardResolver(Resolver_):
                 return self.lt(right_, left_) or self.eq(left_, right_)
 
             case (_ast.ABSOLUTE_QUERY_EXPR, _, segments):
-                return NodeList(self.resolve(self.env, segments, "$", self.root))
+                return NodeList(self.resolve(self.env, segments, self.root))
 
             case (_ast.RELATIVE_QUERY_EXPR, _, segments):
-                return NodeList(self.resolve(self.env, segments, "@", current_value))
+                return NodeList(self.resolve(self.env, segments, current_value))
 
             case (_ast.FUNCTION_EXPR, _, name, args):
                 # Functions are validated at parse time.

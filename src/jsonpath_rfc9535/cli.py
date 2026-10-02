@@ -7,6 +7,7 @@ import sys
 import jsonpath_rfc9535 as jsonpath
 from jsonpath_rfc9535.__about__ import __version__
 from jsonpath_rfc9535.exceptions import (
+    JSONPathIndexError,
     JSONPathSyntaxError,
     JSONPathTypeError,
 )
@@ -113,6 +114,11 @@ def handle_path_command(args: argparse.Namespace) -> None:
         if args.debug:
             raise
         sys.stderr.write(f"type error: {err}\n")
+        sys.exit(1)
+    except JSONPathIndexError as err:
+        if args.debug:
+            raise
+        sys.stderr.write(f"index error: {err}\n")
         sys.exit(1)
 
     try:

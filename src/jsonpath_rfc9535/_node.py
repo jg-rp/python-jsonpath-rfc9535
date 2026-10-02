@@ -14,18 +14,6 @@ implementing a function extension that accepts or returns values of type `NODES_
 class NodeList(list[Node]):
     """A list of tuple nodes."""
 
-    def values(self) -> list[object]:
-        """Return the values from this node list."""
-        return [node[0] for node in self]
-
-    def paths(self) -> list[str]:
-        """Return a normalized paths for each node from this node list."""
-        return [_path(node[1]) for node in self]
-
-    def items(self) -> list[tuple[str, object]]:
-        """Return a list of (path, value) pairs, one for each node in the list."""
-        return [(_path(node[1]), node[0]) for node in self]
-
     def __str__(self) -> str:
         return f"NodeList{super().__str__()}"
 
@@ -47,10 +35,10 @@ class JSONPathNode:
     value : object
         The JSON-like value associated with this node.
 
-        Assigning to `value` will update this node, and mutate source data, too.
+        Assigning to `value` will update this node **and mutate source data too**.
         Mutating source data after evaluating a query can invalidate child nodes.
         Use at your own risk.
-    location
+    location : tuple[str|int, ...]
         Property names and array indexes that make up the normalized path to `value`.
     """
 
@@ -63,7 +51,6 @@ class JSONPathNode:
 
     @property
     def value(self) -> object:
-        """The JSON-like value at this node."""
         return self._value
 
     @value.setter
@@ -91,6 +78,10 @@ class JSONPathNodeList(list[JSONPathNode]):
         """Return node values from this node list."""
         return [node.value for node in self]
 
+    def locations(self) -> list[tuple[str | int, ...]]:
+        """Return the location of each node in this node list."""
+        return [node.location for node in self]
+
     def paths(self) -> list[str]:
         """Return a normalized paths for each node in this node list."""
         return [node.path() for node in self]
@@ -104,15 +95,11 @@ class JSONPathNodeList(list[JSONPathNode]):
 
 
 def _path(location: tuple[str | int, ...]) -> str:
-    it = iter(location)
-    parts: list[str] = [str(next(it))]
+    parts: list[str] = ["$"]
 
-    for p in it:
+    for p in location:
         if isinstance(p, str):
-            if p.startswith("~"):
-                parts.append(f"[~{canonical_string(p[1:])}]")
-            else:
-                parts.append(f"[{canonical_string(p)}]")
+            parts.append(f"[{canonical_string(p)}]")
         else:
             parts.append(f"[{p}]")
 

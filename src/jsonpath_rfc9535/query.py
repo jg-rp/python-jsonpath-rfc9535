@@ -58,7 +58,7 @@ class JSONPathQuery:
             If a descendent segment visits nodes to a depth that exceeds the configured
             `max_recursion_depth`.
         """
-        return list(BasicResolver.resolve(self.env, self.segments, "$", data))
+        return list(BasicResolver.resolve(self.env, self.segments, data))
 
     def finditer(self, data: object) -> Iterable[JSONPathNode]:
         """Generate nodes by applying this query to `data`.
@@ -79,7 +79,7 @@ class JSONPathQuery:
             If a descendent segment visits nodes to a depth that exceeds the configured
             `max_recursion_depth`.
         """
-        for node in StandardResolver.resolve(self.env, self.segments, "$", data):
+        for node in StandardResolver.resolve(self.env, self.segments, data):
             yield JSONPathNode(node)
 
     def find(self, data: object) -> JSONPathNodeList:

@@ -1,16 +1,33 @@
 API Docs
 ========
 
+.. autofunction:: jsonpath_rfc9535.compile
+
+.. autofunction:: jsonpath_rfc9535.find
+
+.. autofunction:: jsonpath_rfc9535.findall
+
+.. autofunction:: jsonpath_rfc9535.finditer
+
+.. autofunction:: jsonpath_rfc9535.search
+
 .. autoclass:: jsonpath_rfc9535.JSONPathEnvironment
     :members:
+
+.. autoclass:: jsonpath_rfc9535.JSONPathQuery
+    :members:
+
+
 
 .. autotype:: jsonpath_rfc9535.Node
 
 .. autoclass:: jsonpath_rfc9535.NodeList
 
 .. autoclass:: jsonpath_rfc9535.JSONPathNode
+    :members:
 
 .. autoclass:: jsonpath_rfc9535.JSONPathNodeList
+    :members:
 
 Function Extensions
 -------------------

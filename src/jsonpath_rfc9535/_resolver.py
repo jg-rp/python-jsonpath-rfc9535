@@ -16,7 +16,6 @@ class Resolver(Protocol):
         self,
         env: JSONPathEnvironment,
         segments: Sequence[Segment],
-        root: str,
         data: object,
     ) -> Iterable[Node]: ...
 
@@ -26,7 +25,6 @@ class BasicResolver(Protocol):
         self,
         env: JSONPathEnvironment,
         segments: Sequence[Segment],
-        root: str,
         data: object,
     ) -> Iterable[object]: ...
 

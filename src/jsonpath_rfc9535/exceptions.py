@@ -74,6 +74,10 @@ class JSONPathSyntaxError(DetailedJSONPathError):
     """The exception raised due to a malformed JSONPath query."""
 
 
+class JSONPathIndexError(DetailedJSONPathError):
+    """The exception raised when an index selector is out of range."""
+
+
 class JSONPathTypeError(DetailedJSONPathError):
     """The exceptions raised when a JSONPath query is not well typed."""
 

@@ -47,21 +47,21 @@ Examples
 
    import jsonpath_rfc9535 as jsonpath
 
-   data = {
+   expr = "$.users[?@.status == 'pending'].name"
+
+   data: dict[str, object] = {
       "users": [
-         {"name": "Sue", "score": 100},
-         {"name": "Sally", "score": 84, "admin": False},
-         {"name": "John", "score": 86, "admin": True},
-         {"name": "Jane", "score": 55},
+         {"id": "usr_101", "name": "Alice", "status": "pending"},
+         {"id": "usr_102", "name": "Bob", "status": "active"},
+         {"id": "usr_103", "name": "Charlie", "status": "pending"},
       ],
-      "moderator": "John",
    }
 
-   for node in jsonpath.find("$.users[?@.score > 85]", data):
-      print(node.value)
+   nodes = jsonpath.find(expr, data)
 
-   # {'name': 'Sue', 'score': 100}
-   # {'name': 'John', 'score': 86, 'admin': True}
+   print(nodes.values())  # ['Alice', 'Charlie']
+   print(nodes.locations())  # [('users', 0, 'name'), ('users', 2, 'name')]
+   print(nodes.paths())  # ["$['users'][0]['name']", "$['users'][2]['name']"]
 
 Or read data from a file:
 
@@ -99,9 +99,11 @@ loaded into dictionaries and lists. If you have `PyYAML`_ installed:
 .. _PyYAML: https://pyyaml.org/wiki/PyYAML
 
 .. toctree::
+   :hidden:
    :maxdepth: 2
-   :caption: Contents:
+   :caption: Contents
 
+   quick.rst
    syntax.rst
    functions.rst
    api.rst

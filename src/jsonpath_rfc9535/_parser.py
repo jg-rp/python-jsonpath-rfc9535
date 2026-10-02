@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Protocol, TypeGuard
 from ._ast import *
 from ._tokens import *
 from .exceptions import (
+    JSONPathIndexError,
     JSONPathNameError,
     JSONPathRecursionError,
     JSONPathSyntaxError,
@@ -230,7 +231,7 @@ class Parser_(ABC):
         value = token_value(token, self.source)
 
         if len(value) > 1 and value.startswith(("0", "-0")):
-            raise JSONPathSyntaxError(
+            raise JSONPathIndexError(
                 f"invalid index {value!r}",
                 token,
                 self.source,
@@ -239,8 +240,7 @@ class Parser_(ABC):
         n = int(value)
 
         if n < self.env.min_index or n > self.env.max_index:
-            # TODO: Different exception?
-            raise JSONPathSyntaxError(
+            raise JSONPathIndexError(
                 f"index out of range {n}",
                 token,
                 self.source,

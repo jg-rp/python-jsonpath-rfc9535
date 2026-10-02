@@ -6,7 +6,7 @@ import pathlib
 
 import pytest
 
-from jsonpath_rfc9535 import JSONPathSyntaxError, JSONPathTypeError
+from jsonpath_rfc9535 import JSONPathIndexError, JSONPathSyntaxError, JSONPathTypeError
 from jsonpath_rfc9535.__about__ import __version__
 from jsonpath_rfc9535.cli import handle_path_command, setup_parser
 
@@ -218,17 +218,17 @@ def test_jsonpath_index_error(
 
     captured = capsys.readouterr()
     assert err.value.code == 1
-    assert captured.err.startswith("syntax error")
+    assert captured.err.startswith("index error")
 
 
 def test_jsonpath_index_error_debug(
     parser: argparse.ArgumentParser,
     sample_target: str,
 ) -> None:
-    """Test that we handle a JSONPath with a syntax error."""
+    """Test that we handle a JSONPath with an index error."""
     args = parser.parse_args(["--debug", "-q", f"$.foo[{2**53}]", "-f", sample_target])
 
-    with pytest.raises(JSONPathSyntaxError):
+    with pytest.raises(JSONPathIndexError):
         handle_path_command(args)
 
 
