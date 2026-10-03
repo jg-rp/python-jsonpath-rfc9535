@@ -49,6 +49,7 @@ dependencies = [
     "sphinx_copybutton",
     "types-regex>=2026.8.31.20260901",
     "ghp-import",
+    "twine",
 ]
 
 [tool.hatch.envs.benchmark]
