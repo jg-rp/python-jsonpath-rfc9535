@@ -2,6 +2,8 @@
 
 ## Version 2.0.0 (unreleased)
 
+This release includes performance improvements and some breaking API changes. JSONPath syntax and semantics are unchanged.
+
 - Dropped support for Python 3.8, 3.9, 3.10 and 3.11.
 - Added a configurable regex cache to the standard `match` and `search` functions.
 - Added detailed error messages to JSONPath exceptions.

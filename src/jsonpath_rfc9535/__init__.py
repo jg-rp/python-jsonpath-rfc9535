@@ -8,6 +8,7 @@ from ._node import JSONPathNode, JSONPathNodeList, Node, NodeList
 from ._parser import Parser, Parser_
 from ._parser_standard import StandardParser
 from .exceptions import (
+    DetailedJSONPathError,
     JSONPathError,
     JSONPathIndexError,
     JSONPathNameError,
@@ -29,6 +30,7 @@ __all__ = (
     "LOGICAL_TYPE",
     "NODES_TYPE",
     "VALUE_TYPE",
+    "DetailedJSONPathError",
     "ExpressionType",
     "FunctionExtension",
     "JSONPathEnvironment",

@@ -17,8 +17,6 @@ API Docs
 .. autoclass:: jsonpath_rfc9535.JSONPathQuery
     :members:
 
-
-
 .. autotype:: jsonpath_rfc9535.Node
 
 .. autoclass:: jsonpath_rfc9535.NodeList
@@ -36,14 +34,16 @@ Function Extensions
     :members:
     :member-order: bysource
 
-AST
----
+Exceptions
+----------
 
-.. autotype:: jsonpath_rfc9535._ast.Segment
-.. autotype:: jsonpath_rfc9535._ast.ChildSegment
-.. autotype:: jsonpath_rfc9535._ast.DescendantSegment
-.. autotype:: jsonpath_rfc9535._ast.Selector
-.. autotype:: jsonpath_rfc9535._ast.NameSelector
-.. autotype:: jsonpath_rfc9535._ast.IndexSelector
-.. autotype:: jsonpath_rfc9535._ast.WildcardSelector
-.. autotype:: jsonpath_rfc9535._ast.FilterSelector
+.. autoclass:: jsonpath_rfc9535.JSONPathError
+    
+.. autoclass:: jsonpath_rfc9535.DetailedJSONPathError
+    :members:
+
+.. autoclass:: jsonpath_rfc9535.JSONPathNameError
+.. autoclass:: jsonpath_rfc9535.JSONPathSyntaxError
+.. autoclass:: jsonpath_rfc9535.JSONPathIndexError
+.. autoclass:: jsonpath_rfc9535.JSONPathTypeError
+.. autoclass:: jsonpath_rfc9535.JSONPathRecursionError

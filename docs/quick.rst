@@ -89,7 +89,7 @@ Node generator
     for node in jsonpath.finditer(expr, data):
         print(node.value)
 
-Just the First node
+Just the first node
 -------------------
 
 :func:`jsonpath_rfc9535.search` applies a JSONPath expression to JSON-like data and returns the first node found, or `None` if there were no matches.
@@ -155,14 +155,14 @@ Use :func:`jsonpath_rfc9535.compile` to parse a JSONPath expression for later ev
     nodes = query.find(data)
     # ...
 
+We don't cache parsed queries between calls to ``find()``, ``finditer()``, etc. So it is well worth compiling your JSONPath expressions up front. 
+
 Configuration
 -------------
 
-:func:`jsonpath_rfc9535.find`, for example, is a convenience function that uses the default JSONPath environment - equivalent to :code:`DEFAULT_ENVIRONMENT.compile(expr).find(data)`.
+Package level functions ``find()``, ``findall()``, ``finditer()``, ``search()`` and ``compile()`` are convenience functions that use the default JSONPath environment. We can configure JSONPath by creating our own instance of :class:`jsonpath_rfc9535.JSONPathEnvironment` and using its ``find()``, ``findall()``, ``finditer()``, ``search()`` and ``compile()`` methods.
 
-We can configure JSONPath by creating our own instance of :class:`jsonpath_rfc9535.JSONPathEnvironment` and using its ``find()``, ``findall()``, ``finditer()`` and ``search()`` methods.
-
-The arguments in this example match the defaults.
+The arguments given in this example match the defaults.
 
 .. code-block:: python
 
@@ -180,3 +180,25 @@ The arguments in this example match the defaults.
     # ...
 
 An instance of ``JSONPathEnvironment`` is also where you'd register custom :doc:`functions`.
+
+Exceptions
+----------
+
+``find()``, ``findall()``, ``finditer()``, ``search()`` and ``compile()`` functions and methods can raise exceptions at JSONPath expression compile time and/or query evaluation time.
+
+All of the following exceptions inherit from :class:`jsonpath_rfc9535.JSONPathError`.
+
+Compile time exceptions
+^^^^^^^^^^^^^^^^^^^^^^^
+
+* :code:`JSONPathSyntaxError`
+* :code:`JSONPathNameError` (unknown filter function)
+* :code:`JSONPathTypeError`
+* :code:`JSONPathIndexError`
+* :code:`JSONPathRecursionError` if a maximum expression depth is set.
+
+Evaluation time exceptions
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+* :code:`JSONPathRecursionError` if a descendant segment recursion limit is set.
+* :code:`JSONPathError` when debugging regex filters.
