@@ -6,9 +6,16 @@ Hi. Your contributions and questions are always welcome. Feel free to ask questi
 
 - [Development](#development)
 - [Documentation](#documentation)
-- [Style Guides](#style-guides)
 
 ## Development
+
+The [JSONPath Compliance Test Suite](https://github.com/jsonpath-standard/jsonpath-compliance-test-suite) is included in this repository as Git [submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules). Clone this project and initialize the submodule with something like:
+
+```shell
+$ git clone git@github.com:jg-rp/python-jsonpath-rfc9535.git
+$ cd python-jsonpath
+$ git submodule update --init
+```
 
 We use [hatch](https://hatch.pypa.io/latest/) to manage project dependencies and development environments.
 
@@ -36,26 +43,12 @@ Check coverage with pytest-cov.
 $ hatch run cov
 ```
 
-Or generate an HTML coverage report.
-
-```shell
-$ hatch run cov-html
-```
-
 Then open `htmlcov/index.html` in your browser.
 
 ## Documentation
 
-Documentation is currently in the [README](https://github.com/jg-rp/python-jsonpath-rfc9535/blob/main/README.md) and project source code only.
+Documentation lives in the `docs` directory and is built with Sphinx. Build it to the `site` directory with:
 
-## Style Guides
-
-### Git Commit Messages
-
-There are no hard rules for git commit messages, although you might like to indicate the type of commit by starting the message with `docs:`, `chore:`, `feat:`, `fix:` or `refactor:`, for example.
-
-### Python Style
-
-All Python files are formatted using [Black](https://github.com/psf/black), with its default configuration.
-
-Docstrings must use [Google style docstrings](https://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html).
+```shell
+$ hatch run docs-build
+```

@@ -1,14 +1,13 @@
-import operator
-from typing import Any
-from typing import List
-from typing import NamedTuple
+import re
 
 import pytest
 
-from jsonpath_rfc9535 import JSONPathEnvironment
-from jsonpath_rfc9535.exceptions import JSONPathRecursionError
-from jsonpath_rfc9535.exceptions import JSONPathSyntaxError
-from jsonpath_rfc9535.exceptions import JSONPathTypeError
+from jsonpath_rfc9535 import (
+    JSONPathEnvironment,
+    JSONPathRecursionError,
+    JSONPathSyntaxError,
+    JSONPathTypeError,
+)
 
 
 @pytest.fixture()
@@ -16,106 +15,81 @@ def env() -> JSONPathEnvironment:
     return JSONPathEnvironment()
 
 
-def test_unclosed_selection_list(env: JSONPathEnvironment) -> None:
-    with pytest.raises(
-        JSONPathSyntaxError, match=r"unbalanced brackets, line 1, column 5"
-    ):
-        env.compile("$[1,2")
+@pytest.mark.parametrize(
+    ("query"),
+    [
+        "$[1,2",
+        "$[?@.a < 1",
+    ],
+)
+def test_missing_right_bracket(query: str, env: JSONPathEnvironment) -> None:
+    with pytest.raises(JSONPathSyntaxError, match=r"unexpected end of query"):
+        env.compile(query)
 
 
-def test_unclosed_selection_list_inside_filter(env: JSONPathEnvironment) -> None:
-    with pytest.raises(
-        JSONPathSyntaxError, match=r"unclosed bracketed selection, line 1, column 10"
-    ):
-        env.compile("$[?@.a < 1")
+@pytest.mark.parametrize(
+    ("query", "message"),
+    [
+        ("$[?(length()==1)]", "length() takes 1 argument (0 given)"),
+        ("$[?(match('foo'))]", "match() takes 2 arguments (1 given)"),
+        ("$[?(count(@.a, @.b))]", "count() takes 1 argument (2 given)"),
+    ],
+)
+def test_function_arity(query: str, message: str, env: JSONPathEnvironment) -> None:
+    with pytest.raises(JSONPathTypeError, match=re.escape(message)):
+        env.compile(query)
 
 
-def test_function_missing_param(env: JSONPathEnvironment) -> None:
-    with pytest.raises(JSONPathTypeError):
-        env.compile("$[?(length()==1)]")
+@pytest.mark.parametrize(
+    ("query", "message"),
+    [
+        ("$[?@.* > 2]", "non-singular query is not comparable"),
+    ],
+)
+def test_compare_non_singular(
+    query: str, message: str, env: JSONPathEnvironment
+) -> None:
+    with pytest.raises(JSONPathTypeError, match=re.escape(message)):
+        env.compile(query)
 
 
-def test_function_too_many_params(env: JSONPathEnvironment) -> None:
-    with pytest.raises(JSONPathTypeError):
-        env.compile("$[?(length(@.a, @.b)==1)]")
+def test_recursive_data(env: JSONPathEnvironment) -> None:
+    source = "$..a"
+    data: dict[str, list[object]] = {"a": []}
+    data["a"].append(data)
 
-
-def test_non_singular_query_is_not_comparable(env: JSONPathEnvironment) -> None:
-    with pytest.raises(JSONPathTypeError):
-        env.compile("$[?@.* > 2]")
-
-
-def test_recursive_data() -> None:
-    class MockEnv(JSONPathEnvironment):
-        nondeterministic = False
-
-    env = MockEnv()
-    query = "$..a"
-    arr: List[Any] = []
-    data: Any = {"foo": arr}
-    arr.append(data)
-
-    with pytest.raises(JSONPathRecursionError):
-        env.find(query, data)
+    with pytest.raises(JSONPathRecursionError, match="recursion limit reached"):
+        env.find(source, data)
 
 
 def test_low_recursion_limit() -> None:
-    class MockEnv(JSONPathEnvironment):
-        max_recursion_depth = 3
-
-    env = MockEnv()
-    query = "$..a"
+    env = JSONPathEnvironment(max_recursion_depth=3)
+    source = "$..a"
     data = {"foo": [{"bar": [1, 2, 3]}]}
 
-    with pytest.raises(JSONPathRecursionError):
-        env.find(query, data)
+    with pytest.raises(JSONPathRecursionError, match="recursion limit reached"):
+        env.find(source, data)
 
 
-def test_recursive_data_nondeterministic() -> None:
-    class MockEnv(JSONPathEnvironment):
-        nondeterministic = True
-
-    env = MockEnv()
-    query = "$..a"
-    arr: List[Any] = []
-    data: Any = {"foo": arr}
-    arr.append(data)
-
-    with pytest.raises(JSONPathRecursionError):
-        env.find(query, data)
-
-
-def test_nested_functions_unbalanced_parens(env: JSONPathEnvironment) -> None:
+def test_unbalanced_parens(env: JSONPathEnvironment) -> None:
     with pytest.raises(JSONPathSyntaxError, match="unbalanced brackets"):
         env.compile("$.values[?match(@.a, value($..['regex'])]")
 
 
-class FilterLiteralTestCase(NamedTuple):
-    description: str
-    query: str
+def test_compile_time_recursion_error(env: JSONPathEnvironment) -> None:
+    with pytest.raises(JSONPathRecursionError):
+        env.compile("$[?" + "!" * 50 + "@.a]")
 
 
-# TODO: add these to the CTS?
-BAD_FILTER_LITERAL_TEST_CASES: List[FilterLiteralTestCase] = [
-    FilterLiteralTestCase("just true", "$[?true]"),
-    FilterLiteralTestCase("just string", "$[?'foo']"),
-    FilterLiteralTestCase("just int", "$[?2]"),
-    FilterLiteralTestCase("just float", "$[?2.2]"),
-    FilterLiteralTestCase("just null", "$[?null]"),
-    FilterLiteralTestCase("literal and literal", "$[?true && false]"),
-    FilterLiteralTestCase("literal or literal", "$[?true || false]"),
-    FilterLiteralTestCase("comparison and literal", "$[?true == false && false]"),
-    FilterLiteralTestCase("comparison or literal", "$[?true == false || false]"),
-    FilterLiteralTestCase("literal and comparison", "$[?true && true == false]"),
-    FilterLiteralTestCase("literal or comparison", "$[?false || true == false]"),
-]
+def test_single_amp(env: JSONPathEnvironment) -> None:
+    with pytest.raises(
+        JSONPathSyntaxError, match=re.escape("unexpected '&', did you mean '&&'?")
+    ):
+        env.compile("$[?(@.a & @.b)]")
 
 
-@pytest.mark.parametrize(
-    "case", BAD_FILTER_LITERAL_TEST_CASES, ids=operator.attrgetter("description")
-)
-def test_filter_literals_must_be_compared(
-    env: JSONPathEnvironment, case: FilterLiteralTestCase
-) -> None:
-    with pytest.raises(JSONPathSyntaxError):
-        env.compile(case.query)
+def test_single_pipe(env: JSONPathEnvironment) -> None:
+    with pytest.raises(
+        JSONPathSyntaxError, match=re.escape("unexpected '|', did you mean '||'?")
+    ):
+        env.compile("$[?(@.a | @.b)]")

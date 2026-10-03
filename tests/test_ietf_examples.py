@@ -39,9 +39,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 import dataclasses
 import operator
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Union
 
 import pytest
 
@@ -52,11 +49,11 @@ from jsonpath_rfc9535 import JSONPathEnvironment
 class Case:
     description: str
     query: str
-    data: Union[List[Any], Dict[str, Any]]
-    want: Union[List[Any], Dict[str, Any]]
+    data: Any
+    want: Any
 
 
-FILTER_SELECTOR_DATA = {
+FILTER_SELECTOR_DATA: dict[str, object] = {
     "a": [3, 5, 1, 2, 4, 6, {"b": "j"}, {"b": "k"}, {"b": {}}, {"b": "kilo"}],
     "o": {"p": 1, "q": 2, "r": 3, "s": 5, "t": {"u": 6}},
     "e": "f",
@@ -369,7 +366,7 @@ def env() -> JSONPathEnvironment:
 
 
 @pytest.mark.parametrize("case", TEST_CASES, ids=operator.attrgetter("description"))
-def test_find_ieft(env: JSONPathEnvironment, case: Case) -> None:
+def test_find_ietf(env: JSONPathEnvironment, case: Case) -> None:
     query = env.compile(case.query)
     assert query.find(case.data).values() == case.want
 

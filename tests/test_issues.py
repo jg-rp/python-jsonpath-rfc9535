@@ -20,7 +20,7 @@ def test_issue_21() -> None:
     assert node.value == new_value
     assert data["foo"]["bar"]["baz"] == new_value
 
-    parent = node.parent
+    parent = node.parent()
     assert parent is not None
     assert parent.value == {"baz": new_value}
     assert parent.value["baz"] == new_value  # type: ignore

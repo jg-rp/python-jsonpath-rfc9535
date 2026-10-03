@@ -6,14 +6,11 @@ import pathlib
 
 import pytest
 
+from jsonpath_rfc9535 import JSONPathIndexError, JSONPathSyntaxError, JSONPathTypeError
 from jsonpath_rfc9535.__about__ import __version__
-from jsonpath_rfc9535.cli import handle_path_command
-from jsonpath_rfc9535.cli import setup_parser
-from jsonpath_rfc9535.exceptions import JSONPathIndexError
-from jsonpath_rfc9535.exceptions import JSONPathSyntaxError
-from jsonpath_rfc9535.exceptions import JSONPathTypeError
+from jsonpath_rfc9535.cli import handle_path_command, setup_parser
 
-SAMPLE_DATA = {
+SAMPLE_DATA: dict[str, object] = {
     "categories": [
         {
             "name": "footwear",
@@ -228,7 +225,7 @@ def test_jsonpath_index_error_debug(
     parser: argparse.ArgumentParser,
     sample_target: str,
 ) -> None:
-    """Test that we handle a JSONPath with a syntax error."""
+    """Test that we handle a JSONPath with an index error."""
     args = parser.parse_args(["--debug", "-q", f"$.foo[{2**53}]", "-f", sample_target])
 
     with pytest.raises(JSONPathIndexError):
@@ -246,7 +243,6 @@ def test_jsonpath(
     )
 
     handle_path_command(args)
-    args.output.flush()
 
     with open(outfile, "r") as fd:
-        assert len(json.load(fd)) == 4  # noqa: PLR2004
+        assert len(json.load(fd)) == 4

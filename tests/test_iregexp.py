@@ -1,7 +1,7 @@
 """I-Regexp checking tests.
 
 Some of these test cases are derived from https:github.com/f3ath/iregexp.
-Thanks go to @f3ath and the project's license is included here.
+Thanks go to @f3ath. The project's license is included here.
 
 MIT License
 
