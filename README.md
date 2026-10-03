@@ -52,7 +52,7 @@ pipenv install -u jsonpath-rfc9535
 
 ## Links
 
-- Documentation: TODO:
+- Documentation: https://jg-rp.github.io/python-jsonpath-rfc9535/
 - Change log: https://github.com/jg-rp/python-jsonpath-rfc9535/blob/main/CHANGELOG.md
 - PyPi: https://pypi.org/project/jsonpath-rfc9535
 - Source code: https://github.com/jg-rp/python-jsonpath-rfc9535
