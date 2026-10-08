@@ -12,6 +12,8 @@
 
 - Fixed `\u` escape sequence rejection of code points less than or equal to 0x1F. The spec requires us to reject literals of 0x1F or lower, not escape sequences. See [#24](https://github.com/jg-rp/python-jsonpath-rfc9535/issues/24).
 
+- Fixed the shorthand name selector to accept the full range of allow Unicode code points and reject names containing `-`. See [#25](https://github.com/jg-rp/python-jsonpath-rfc9535/issues/25).
+
 ## Version 2.0.0
 
 This release includes performance improvements and some breaking API changes. JSONPath syntax and semantics are unchanged.

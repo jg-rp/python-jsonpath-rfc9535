@@ -6,7 +6,9 @@ from .exceptions import JSONPathSyntaxError
 RE_FLOAT = re.compile(r"(:?-?[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?)|(-?[0-9]+[eE]-[0-9]+)")
 RE_INT = re.compile(r"-?[0-9]+")
 RE_INT_EXP = re.compile(r"-?[0-9]+[eE]\+?[0-9]+")
-RE_NAME = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
+RE_NAME = re.compile(
+    r"[\u0080-\uD7FF\uE000-\U0010FFFFa-zA-Z_][\u0080-\u10FFFF\uE000-\U0010FFFFa-zA-Z0-9_]*"
+)
 RE_TRIVIA = re.compile(r"[ \n\r\t]+")
 
 
@@ -234,7 +236,8 @@ def _is_name_first_ch(ch: int) -> bool:
         (ch >= 65 and ch <= 90)
         or (ch >= 97 and ch <= 122)
         or ch == 95
-        or (ch >= 0x80 and ch <= 0xFFFF)
+        or (ch >= 0x80 and ch <= 0xD7FF)
+        or (ch >= 0xE000 and ch <= 0x10FFFF)
     )
 
 
