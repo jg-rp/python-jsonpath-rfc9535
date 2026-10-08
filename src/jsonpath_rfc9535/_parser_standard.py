@@ -195,6 +195,7 @@ class StandardParser(Parser_):
                 )
 
             self.eat(TOKEN_COMMA)
+            self.skip(TOKEN_TRIVIA)
             if self.kind() == TOKEN_RIGHT_BRACKET:
                 raise JSONPathSyntaxError(
                     "unexpected trailing comma",

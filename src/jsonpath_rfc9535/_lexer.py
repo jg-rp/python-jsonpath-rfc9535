@@ -11,11 +11,7 @@ RE_TRIVIA = re.compile(r"[ \n\r\t]+")
 
 
 def tokenize(source: str) -> list[Token]:
-    """Transform a JSONPath query source string into a list of tokens.
-
-    This tokenizer emits some non-standard tokens. The parser is responsible
-    for reject non-standard tokens with a syntax error if desired.
-    """
+    """Transform a JSONPath query source string into a list of tokens."""
     tokens: list[Token] = []
     length = len(source)
     pos = 0

@@ -1,3 +1,5 @@
+import pytest
+
 import jsonpath_rfc9535 as jsonpath
 
 
@@ -24,3 +26,14 @@ def test_issue_21() -> None:
     assert parent is not None
     assert parent.value == {"baz": new_value}
     assert parent.value["baz"] == new_value  # type: ignore
+
+
+def test_issue_26() -> None:
+    with pytest.raises(jsonpath.JSONPathSyntaxError):
+        jsonpath.compile("$[1,]")
+
+    with pytest.raises(jsonpath.JSONPathSyntaxError):
+        jsonpath.compile("$[1, ]")
+
+    with pytest.raises(jsonpath.JSONPathSyntaxError):
+        jsonpath.compile("$[ 1, ]")
