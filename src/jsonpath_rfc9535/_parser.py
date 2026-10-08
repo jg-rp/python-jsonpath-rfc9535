@@ -20,7 +20,7 @@ from .query import JSONPathQuery
 if TYPE_CHECKING:
     from ._environment import JSONPathEnvironment
 
-_RE_ESCAPE_U = re.compile(r"(\\u[0-9a-dA-F]{4}|\\.)")
+_RE_ESCAPE_U = re.compile(r"(\\u[0-9a-fA-F]{4}|\\.)")
 
 
 class Parser(Protocol):
@@ -342,13 +342,6 @@ class Parser_(ABC):
 
                     code_point = 0x10000 + (
                         ((code_point & 0x03FF) << 10) | (low_surrogate & 0x03FF)
-                    )
-
-                if code_point <= 0x1F:
-                    raise JSONPathSyntaxError(
-                        "invalid escape sequence",
-                        token,
-                        self.source,
                     )
 
                 unescaped.append(chr(code_point))

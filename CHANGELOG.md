@@ -8,6 +8,10 @@
 
 - Fixed comparison operators `<`, `>`, `<=` and `>=` when comparing `true` and/or `false` with `1` and `0`. Previously we were leaking Python behavior. See [#27](https://github.com/jg-rp/python-jsonpath-rfc9535/issues/27).
 
+- Fixed `\u` escaped sequence decoding. Previously we would not recognize lower case `e` and `f` hex digits due to a typo in a regular expression. See [#24](https://github.com/jg-rp/python-jsonpath-rfc9535/issues/24).
+
+- Fixed `\u` escape sequence rejection of code points less than or equal to 0x1F. The spec requires us to reject literals of 0x1F or lower, not escape sequences. See [#24](https://github.com/jg-rp/python-jsonpath-rfc9535/issues/24).
+
 ## Version 2.0.0
 
 This release includes performance improvements and some breaking API changes. JSONPath syntax and semantics are unchanged.
