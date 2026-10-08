@@ -28,6 +28,14 @@ def test_issue_21() -> None:
     assert parent.value["baz"] == new_value  # type: ignore
 
 
+def test_issue_24() -> None:
+    data = {"\u001f": 1, "é": 2}
+
+    assert jsonpath.findall("$['\\u001f']", data) == [1]
+    assert jsonpath.findall("$['\\u00e9']", data) == [2]
+    assert jsonpath.findall("$['\\u00E9']", data) == [2]
+
+
 def test_issue_26() -> None:
     with pytest.raises(jsonpath.JSONPathSyntaxError):
         jsonpath.compile("$[1,]")
