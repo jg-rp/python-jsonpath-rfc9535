@@ -1,5 +1,11 @@
 # Python JSONPath RFC 9535 Change Log
 
+## Version 2.0.1 (unreleased)
+
+**Fixes**
+
+- Fixed trailing comma detection in bracketed segments. Previously we failed to consume whitespace after a comma and before checking for `]`. See [#26](https://github.com/jg-rp/python-jsonpath-rfc9535/issues/26).
+
 ## Version 2.0.0
 
 This release includes performance improvements and some breaking API changes. JSONPath syntax and semantics are unchanged.
