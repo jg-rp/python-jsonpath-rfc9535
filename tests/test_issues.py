@@ -36,6 +36,14 @@ def test_issue_24() -> None:
     assert jsonpath.findall("$['\\u00E9']", data) == [2]
 
 
+def test_issue_25() -> None:
+    with pytest.raises(jsonpath.JSONPathSyntaxError):
+        assert jsonpath.compile("$.a-b")
+
+    assert jsonpath.findall("$.😀", {"😀": 1}) == [1]
+    assert jsonpath.findall("$['😀']", {"😀": 1}) == [1]
+
+
 def test_issue_26() -> None:
     with pytest.raises(jsonpath.JSONPathSyntaxError):
         jsonpath.compile("$[1,]")
