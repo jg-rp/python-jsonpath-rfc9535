@@ -37,3 +37,9 @@ def test_issue_26() -> None:
 
     with pytest.raises(jsonpath.JSONPathSyntaxError):
         jsonpath.compile("$[ 1, ]")
+
+
+def test_issue_27() -> None:
+    assert jsonpath.findall("$[?@ > false]", [0, 1, True, False]) == []
+    assert jsonpath.findall("$[?@ < true]", [0, 1, True]) == []
+    assert jsonpath.findall("$[?@ >= 0]", [True, False, 0]) == [0]

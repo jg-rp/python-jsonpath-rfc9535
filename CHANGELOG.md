@@ -6,6 +6,8 @@
 
 - Fixed trailing comma detection in bracketed segments. Previously we failed to consume whitespace after a comma and before checking for `]`. See [#26](https://github.com/jg-rp/python-jsonpath-rfc9535/issues/26).
 
+- Fixed comparison operators `<`, `>`, `<=` and `>=` when comparing `true` and/or `false` with `1` and `0`. Previously we were leaking Python behavior. See [#27](https://github.com/jg-rp/python-jsonpath-rfc9535/issues/27).
+
 ## Version 2.0.0
 
 This release includes performance improvements and some breaking API changes. JSONPath syntax and semantics are unchanged.
