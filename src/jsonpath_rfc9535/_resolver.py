@@ -105,6 +105,9 @@ class Resolver_:
             else:
                 return False
 
+        if isinstance(left, bool) or isinstance(right, bool):
+            return False
+
         if isinstance(left, str) and isinstance(right, str):
             return left < right
 
