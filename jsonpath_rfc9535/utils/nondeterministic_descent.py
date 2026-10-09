@@ -155,4 +155,4 @@ def nondeterministic_visit(root: AuxNode) -> Iterable[AuxNode]:
 def all_perms(root: AuxNode) -> List[Tuple[AuxNode, ...]]:
     """Return a list of valid permutations for the auxiliary tree _root_."""
     perms = {tuple(nondeterministic_visit(root)) for _ in range(1000)}
-    return sorted(perms, key=lambda t: str(t))
+    return sorted(perms, key=str)

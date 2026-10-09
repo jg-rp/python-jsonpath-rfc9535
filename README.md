@@ -22,6 +22,9 @@ We follow <a href="https://datatracker.ietf.org/doc/html/rfc9535">RFC 9535</a> s
 
 ---
 
+> [!NOTE]
+> This is the branch for version 1. It receives bug fixes only.
+
 **Table of Contents**
 
 - [Install](#install)

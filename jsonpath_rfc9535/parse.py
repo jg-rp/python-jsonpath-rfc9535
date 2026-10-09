@@ -545,7 +545,8 @@ class Parser:
                 _ch, index = self._decode_escape_sequence(value, index, token)
                 unescaped.append(_ch)
             else:
-                self._string_from_codepoint(ord(ch), token)
+                if ord(ch) <= 0x1F:
+                    raise JSONPathSyntaxError("invalid character", token=token)
                 unescaped.append(ch)
             index += 1
         return "".join(unescaped)
@@ -572,7 +573,7 @@ class Parser:
             return "\t", index
         if ch == "u":
             codepoint, index = self._decode_hex_char(value, index, token)
-            return self._string_from_codepoint(codepoint, token), index
+            return chr(codepoint), index
 
         raise JSONPathSyntaxError(
             f"unknown escape sequence at index {token.index + index - 1}",
@@ -641,11 +642,6 @@ class Parser:
                     token=token,
                 )
         return codepoint
-
-    def _string_from_codepoint(self, codepoint: int, token: Token) -> str:
-        if codepoint <= 0x1F:
-            raise JSONPathSyntaxError("invalid character", token=token)
-        return chr(codepoint)
 
     def _is_high_surrogate(self, codepoint: int) -> bool:
         return codepoint >= 0xD800 and codepoint <= 0xDBFF

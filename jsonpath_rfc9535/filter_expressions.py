@@ -483,6 +483,9 @@ def _lt(left: object, right: object) -> bool:
     if isinstance(left, str) and isinstance(right, str):
         return left < right
 
+    if isinstance(left, bool) or isinstance(right, bool):
+        return False
+
     if isinstance(left, (int, float)) and isinstance(right, (int, float)):
         return left < right
 

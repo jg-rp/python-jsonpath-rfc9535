@@ -17,7 +17,9 @@ from .tokens import TokenType
 # ruff: noqa: D102
 
 RE_WHITESPACE = re.compile(r"[ \n\r\t]+")
-RE_PROPERTY = re.compile(r"[\u0080-\uFFFFa-zA-Z_][\u0080-\uFFFFa-zA-Z0-9_-]*")
+RE_PROPERTY = re.compile(
+    r"[\u0080-\uD7FF\uE000-\U0010FFFFa-zA-Z_][\u0080-\u10FFFF\uE000-\U0010FFFFa-zA-Z0-9_]*"
+)
 RE_INDEX = re.compile(r"-?[0-9]+")
 RE_INT = re.compile(r"-?[0-9]+(?:[eE]\+?[0-9]+)?")
 # RE_FLOAT includes numbers with a negative exponent and no decimal point.
