@@ -1,6 +1,6 @@
 # Python JSONPath RFC 9535 Change Log
 
-## Version 2.0.1 (unreleased)
+## Version 2.0.1
 
 **Fixes**
 
