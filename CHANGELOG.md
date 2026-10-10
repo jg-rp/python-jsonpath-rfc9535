@@ -1,10 +1,10 @@
 # Python JSONPath RFC 9535 Change Log
 
-## Version 2.0.2 (unreleased)
+## Version 2.0.2
 
 **Fixes**
 
-- Restored support for traversing `dict` and `list` subclasses. See [#32](https://github.com/jg-rp/python-jsonpath-rfc9535/issues/32).
+- Restored support for traversing `dict` and `list` subclasses when resolving a JSONPath expression. See [#32](https://github.com/jg-rp/python-jsonpath-rfc9535/issues/32).
 
 ## Version 2.0.1
 
