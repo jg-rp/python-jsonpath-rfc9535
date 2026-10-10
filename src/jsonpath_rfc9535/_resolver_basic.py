@@ -64,37 +64,37 @@ class BasicResolver(Resolver_):
     def _resolve_selector(self, selector: Selector, obj: object) -> Iterable[object]:
         match selector:
             case (_ast.NAME_SELECTOR, _, name):
-                if type(obj) is dict and name in obj:
+                if isinstance(obj, dict) and name in obj:
                     yield obj[name]
 
             case (_ast.INDEX_SELECTOR, _, index):
-                if type(obj) is list and len(obj) >= abs(index) + int(index >= 0):
+                if isinstance(obj, list) and len(obj) >= abs(index) + int(index >= 0):
                     if index < 0 and len(obj) >= abs(index):
                         index = len(obj) + index
 
                     yield obj[index]
 
             case (_ast.SLICE_SELECTOR, _, slice_):
-                if type(obj) is list and slice_.step != 0:
+                if isinstance(obj, list) and slice_.step != 0:
                     for i, elem in zip(range(*slice_.indices(len(obj))), obj[slice_]):
                         yield elem
 
             case (_ast.WILDCARD_SELECTOR, _):
-                if type(obj) is dict:
+                if isinstance(obj, dict):
                     for k, v in obj.items():
                         yield v
 
-                elif type(obj) is list:
+                elif isinstance(obj, list):
                     for i, elem in enumerate(obj):
                         yield elem
 
             case (_ast.FILTER_SELECTOR, _, expr):
-                if type(obj) is dict:
+                if isinstance(obj, dict):
                     for k, v in obj.items():
                         if self.truthy(self._evaluate_expression(expr, k, v)):
                             yield v
 
-                elif type(obj) is list:
+                elif isinstance(obj, list):
                     for i, elem in enumerate(obj):
                         if self.truthy(self._evaluate_expression(expr, i, elem)):
                             yield elem
@@ -210,16 +210,14 @@ class BasicResolver(Resolver_):
 
             yield obj
 
-            if type(obj) is dict:
+            if isinstance(obj, dict):
                 for k, v in obj.items():
-                    vt = type(v)
-                    if isinstance(k, str) and (vt is list or vt is dict):
+                    if isinstance(k, str) and isinstance(v, (list, dict)):
                         yield from visit_(v, depth + 1)
 
-            elif type(obj) is list:
+            elif isinstance(obj, list):
                 for elem in obj:
-                    et = type(elem)
-                    if et is list or et is dict:
+                    if isinstance(elem, (dict, list)):
                         yield from visit_(elem, depth + 1)
 
         return visit_(node, 1)

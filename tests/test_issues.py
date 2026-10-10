@@ -59,3 +59,28 @@ def test_issue_27() -> None:
     assert jsonpath.findall("$[?@ > false]", [0, 1, True, False]) == []
     assert jsonpath.findall("$[?@ < true]", [0, 1, True]) == []
     assert jsonpath.findall("$[?@ >= 0]", [True, False, 0]) == [0]
+
+
+def test_issue_32() -> None:
+    class MyDict(dict[str, object]):
+        pass
+
+    class MyList(list[object]):
+        pass
+
+    data = MyDict(
+        {
+            "users": MyList(
+                [
+                    {"id": "usr_101", "name": "Alice", "status": "pending"},
+                    {"id": "usr_102", "name": "Bob", "status": "active"},
+                    {"id": "usr_103", "name": "Charlie", "status": "pending"},
+                ]
+            ),
+        }
+    )
+
+    expr = "$.users[?@.status == 'pending'].name"
+
+    assert jsonpath.findall(expr, data) == ["Alice", "Charlie"]
+    assert jsonpath.find(expr, data).values() == ["Alice", "Charlie"]
