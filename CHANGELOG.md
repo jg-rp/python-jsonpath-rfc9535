@@ -1,5 +1,12 @@
 # Python JSONPath RFC 9535 Change Log
 
+## Version 2.1.0 (unreleased)
+
+- Support PyPy 3.12.
+- Removed the iregexp-check dependency in favour of our own faster and more correct implementation.
+- Replaced I-Regexp mapping function `map_re` with `map_iregexp`, which has options for wrapping the result in anchors and treating `^` and `$` as normal characters.
+- Added non-standard, opt-in versions of the `match` and `search` functions that use Python's `re` module instead of `regex` and the I-Regexp validator.
+
 ## Version 2.0.2
 
 **Fixes**

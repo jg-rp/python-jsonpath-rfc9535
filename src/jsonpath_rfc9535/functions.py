@@ -6,8 +6,8 @@ from collections.abc import Sequence, Sized
 from typing import TYPE_CHECKING, Any, Literal
 
 import regex as re
-from iregexp_check import check
 
+from ._iregexp import check_iregexp, map_iregexp
 from ._lru_cache import LRUCache, ThreadSafeLRUCache
 from ._node import BasicNodeList
 from ._nothing import NOTHING
@@ -75,6 +75,7 @@ class CachingRegexFunction(FunctionExtension):
         *,
         cache_capacity: int = 300,
         debug: bool = False,
+        escape_anchors: bool = False,
         thread_safe: bool = False,
     ) -> None:
         super().__init__()
@@ -85,6 +86,7 @@ class CachingRegexFunction(FunctionExtension):
         )
 
         self.debug = debug
+        self.escape_anchors = escape_anchors
 
     def __call__(self, string: object, pattern: object) -> bool:
         if not isinstance(pattern, str):
@@ -99,12 +101,19 @@ class CachingRegexFunction(FunctionExtension):
             return self._debug_or_false("invalid pattern from cache")
 
         if pattern_ is None:
-            if not check(pattern):
+            if not check_iregexp(pattern):
                 self.cache[pattern] = self.INVALID_PATTERN
                 return self._debug_or_false("I-Regexp check failed")
 
             try:
-                pattern_ = re.compile(map_re(pattern), re.VERSION1)
+                pattern_ = re.compile(
+                    map_iregexp(
+                        pattern,
+                        escape_anchors=self.escape_anchors,
+                        wrap=False,
+                    ),
+                    re.VERSION1,
+                )
             except re.error as err:
                 self.cache[pattern] = self.INVALID_PATTERN
                 return self._debug_or_false(str(err))
@@ -146,33 +155,3 @@ class Value(FunctionExtension):
         if len(nodes) == 1:
             return nodes[0] if isinstance(nodes, BasicNodeList) else nodes[0][0]
         return NOTHING
-
-
-def map_re(pattern: str) -> str:
-    escaped = False
-    char_class = False
-    parts: list[str] = []
-    for ch in pattern:
-        if escaped:
-            parts.append(ch)
-            escaped = False
-            continue
-
-        if ch == ".":
-            if not char_class:
-                parts.append(r"(?:(?![\r\n])\P{Cs}|\p{Cs}\p{Cs})")
-            else:
-                parts.append(ch)
-        elif ch == "\\":
-            escaped = True
-            parts.append(ch)
-        elif ch == "[":
-            char_class = True
-            parts.append(ch)
-        elif ch == "]":
-            char_class = False
-            parts.append(ch)
-        else:
-            parts.append(ch)
-
-    return "".join(parts)
