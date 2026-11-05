@@ -2,10 +2,10 @@
 
 ## Version 2.1.0 (unreleased)
 
-- Support PyPy 3.12.
+- Added support PyPy 3.12 (as a result of removing the iregexp-check dependency).
 - Removed the iregexp-check dependency in favour of our own faster and more correct implementation.
-- Replaced I-Regexp mapping function `map_re` with `map_iregexp`, which has options for wrapping the result in anchors and treating `^` and `$` as normal characters.
-- Added non-standard, opt-in versions of the `match` and `search` functions that use Python's `re` module instead of `regex` and the I-Regexp validator.
+- Added an `escape_anchors` argument to `jsonpath_rfc9535.functions.Match` and `jsonpath_rfc9535.functions.Search` for controlling `^` and `$` behavior in regular expression patterns.
+- Added non-standard versions of the `match` and `search` functions for anyone who wants to opt out of I-Regexp validation and mapping. `jsonpath_rfc9535.functions.PyMatch` and `jsonpath_rfc9535.functions.PySearch` use Python's built-in `re` module.
 
 ## Version 2.0.2
 

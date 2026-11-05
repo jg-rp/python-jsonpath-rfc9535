@@ -270,7 +270,7 @@ def map_iregexp(pattern: str, *, escape_anchors: bool = True, wrap: bool = True)
     ------
     pattern
         A regular expression pattern suitable for the "regex" package. The result
-        is not guarenteed to be compatible with Python's "re" module due to the
+        is not guaranteed to be compatible with Python's "re" module due to the
         lack of support for ``\\p{..}`` and ``\\P{..}`` escape sequences.
     """
     out = ["^(?:"] if wrap else []
