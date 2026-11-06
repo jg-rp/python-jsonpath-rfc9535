@@ -4,6 +4,7 @@ from collections.abc import Iterable
 
 from ._debug import tree_view
 from ._environment import JSONPathEnvironment
+from ._iregexp import check_iregexp, map_iregexp
 from ._node import JSONPathNode, JSONPathNodeList, Node, NodeList
 from ._parser import Parser, Parser_
 from ._parser_standard import StandardParser
@@ -48,6 +49,8 @@ __all__ = (
     "Parser",
     "Parser_",
     "StandardParser",
+    "check_iregexp",
+    "map_iregexp",
     "parse",
     "tree_view",
 )

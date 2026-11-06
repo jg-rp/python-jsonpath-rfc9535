@@ -3,7 +3,7 @@ import re
 from ._tokens import *
 from .exceptions import JSONPathSyntaxError
 
-RE_FLOAT = re.compile(r"(:?-?[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?)|(-?[0-9]+[eE]-[0-9]+)")
+RE_FLOAT = re.compile(r"-?[0-9]+\.[0-9]+(?:[eE][+-]?[0-9]+)?|-?[0-9]+[eE]-[0-9]+")
 RE_INT = re.compile(r"-?[0-9]+")
 RE_INT_EXP = re.compile(r"-?[0-9]+[eE]\+?[0-9]+")
 RE_NAME = re.compile(

@@ -27,12 +27,17 @@ API Docs
 .. autoclass:: jsonpath_rfc9535.JSONPathNodeList
     :members:
 
+.. autofunction:: jsonpath_rfc9535.check_iregexp
+
+.. autofunction:: jsonpath_rfc9535.map_iregexp
+
 Function Extensions
 -------------------
 
 .. automodule:: jsonpath_rfc9535.functions
     :members:
     :member-order: bysource
+    :show-inheritance:
 
 Exceptions
 ----------

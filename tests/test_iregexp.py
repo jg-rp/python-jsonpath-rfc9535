@@ -1,139 +1,201 @@
-"""I-Regexp checking tests.
-
-Some of these test cases are derived from https:github.com/f3ath/iregexp.
-Thanks go to @f3ath. The project's license is included here.
-
-MIT License
-
-Copyright (c) 2023 Alexey
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
-
-import dataclasses
-import operator
-
 import pytest
-from iregexp_check import check
 
-
-@dataclasses.dataclass
-class Case:
-    description: str
-    pattern: str
-
-
-VALID_TEST_CASES = [
-    Case("dot", r"a.b"),
-    Case("char_class_expr", r"[0-9]"),
-    Case("branch", r"foo|bar"),
-    Case("range_quantifier_exact", r"[ab]{3}"),
-    Case("range_quantifier", r"[ab]{3,5}"),
-    Case("range_quantifier_open_ended", r"[ab]{3,}"),
-    Case("char_class_expr_negation", r"[^ab]"),
-    Case("unicode_character_category_letter", r"\p{L}"),
-    Case("unicode_character_category_letter_uppercase", r"\p{Lu}"),
-    Case("unicode_character_category_letter_lowercase", r"\p{Ll}"),
-    Case("unicode_character_category_letter_titlecase", r"\p{Lt}"),
-    Case("unicode_character_category_letter_modifier", r"\p{Lm}"),
-    Case("unicode_character_category_letter_other", r"\p{Lo}"),
-    Case("unicode_character_category_mark_nonspcaing", r"\p{Mn}"),
-    Case("unicode_character_category_mark_spacing_combining", r"\p{Mc}"),
-    Case("unicode_character_category_mark_enclosing", r"\p{Me}"),
-    Case("unicode_character_category_number_decimal_digit", r"\p{Nd}"),
-    Case("unicode_character_category_number_letter", r"\p{Nl}"),
-    Case("unicode_character_category_number_other", r"\p{No}"),
-    Case("unicode_character_category_punctuation_connector", r"\p{Pc}"),
-    Case("unicode_character_category_punctuation_dash", r"\p{Pd}"),
-    Case("unicode_character_category_punctuation_open", r"\p{Ps}"),
-    Case("unicode_character_category_punctuation_close", r"\p{Pe}"),
-    Case("unicode_character_category_punctuation_initial_quote", r"\p{Pi}"),
-    Case("unicode_character_category_punctuation_final_quote", r"\p{Pf}"),
-    Case("unicode_character_category_punctuation_other", r"\p{Po}"),
-    Case("unicode_character_category_symbol_math", r"\p{Sm}"),
-    Case("unicode_character_category_symbol_currency", r"\p{Sc}"),
-    Case("unicode_character_category_symbol_modifier", r"\p{Sk}"),
-    Case("unicode_character_category_symbol_other", r"\p{So}"),
-    Case("unicode_character_category_separator_space", r"\p{Zs}"),
-    Case("unicode_character_category_separator_line", r"\p{Zl}"),
-    Case("unicode_character_category_separator_paragraph", r"\p{Zp}"),
-    Case("unicode_character_category_other_control", r"\p{Cc}"),
-    Case("unicode_character_category_other_format", r"\p{Cf}"),
-    Case("unicode_character_category_other_private_use", r"\p{Co}"),
-    Case("unicode_character_category_other_not_assigned", r"\p{Cn}"),
-    Case("unicode_character_category_inverted_letter", r"\P{L}"),
-    Case("unicode_character_category_inverted_letter_uppercase", r"\P{Lu}"),
-    Case("unicode_character_category_inverted_letter_lowercase", r"\P{Ll}"),
-    Case("unicode_character_category_inverted_letter_titlecase", r"\P{Lt}"),
-    Case("unicode_character_category_inverted_letter_modifier", r"\P{Lm}"),
-    Case("unicode_character_category_inverted_letter_other", r"\P{Lo}"),
-    Case("unicode_character_category_inverted_mark_nonspacing", r"\P{Mn}"),
-    Case("unicode_character_category_inverted_mark_spacing_combining", r"\P{Mc}"),
-    Case("unicode_character_category_inverted_mark_enclosing", r"\P{Me}"),
-    Case("unicode_character_category_inverted_number_decimal_digit", r"\P{Nd}"),
-    Case("unicode_character_category_inverted_number_letter", r"\P{Nl}"),
-    Case("unicode_character_category_inverted_number_other", r"\P{No}"),
-    Case("unicode_character_category_inverted_punctuation_connector", r"\P{Pc}"),
-    Case("unicode_character_category_inverted_punctuation_dash", r"\P{Pd}"),
-    Case("unicode_character_category_inverted_punctuation_open", r"\P{Ps}"),
-    Case("unicode_character_category_inverted_punctuation_close", r"\P{Pe}"),
-    Case("unicode_character_category_inverted_punctuation_initial_quote", r"\P{Pi}"),
-    Case("unicode_character_category_inverted_punctuation_final_quote", r"\P{Pf}"),
-    Case("unicode_character_category_inverted_punctuation_other", r"\P{Po}"),
-    Case("unicode_character_category_inverted_symbol_math", r"\P{Sm}"),
-    Case("unicode_character_category_inverted_symbol_currency", r"\P{Sc}"),
-    Case("unicode_character_category_inverted_symbol_modifier", r"\P{Sk}"),
-    Case("unicode_character_category_inverted_symbol_other", r"\P{So}"),
-    Case("unicode_character_category_inverted_separator_space", r"\P{Zs}"),
-    Case("unicode_character_category_inverted_separator_line", r"\P{Zl}"),
-    Case("unicode_character_category_inverted_separator_paragraph", r"\P{Zp}"),
-    Case("unicode_character_category_inverted_other_control", r"\P{Cc}"),
-    Case("unicode_character_category_inverted_other_format", r"\P{Cf}"),
-    Case("unicode_character_category_inverted_other_private_use", r"\P{Co}"),
-    Case("unicode_character_category_inverted_other_not_assigned", r"\P{Cn}"),
-]
-
-INVALID_TEST_CASES = [
-    Case("named_group", r"(?<group>[a-z]*)"),
-    Case("multi_char_escape", r"\d"),
-    Case("multi_char_escape_class_expr", r"[\S ]"),
-    Case("non_greedy_repetition", r"[0-9]*?"),
-    Case("back_reference", r"(\w)\1"),
-    Case("lookahead", r"(?=.*[a-z])(?=.*[A-Z])(?=.*)[a-zA-Z]{8,}"),
-    Case("lookbehind", r"(?<=[a-z]{4})\[a-z]{2}"),
-    Case("non_capturing_group", r"(?:[a-z]+)"),
-    Case("atomic_group", r"(?>[a-z]+)"),
-    Case("conditional_group", r"(?(1)a|b)"),
-    Case("comment", r"(?#comment)"),
-    Case("flag", r"(?i)[a-z]+"),
-]
+from jsonpath_rfc9535 import check_iregexp
 
 
 @pytest.mark.parametrize(
-    "case", VALID_TEST_CASES, ids=operator.attrgetter("description")
+    ("pattern", "want"),
+    [
+        (r"a.b", True),
+        (r"[0-9]", True),
+        (r"foo|bar", True),
+        (r"[ab]{3}", True),
+        (r"[ab]{3,5}", True),
+        (r"[ab]{3,}", True),
+        (r"[^ab]", True),
+        (r"\p{L}", True),
+        (r"\p{Lu}", True),
+        (r"\p{Ll}", True),
+        (r"\p{Lt}", True),
+        (r"\p{Lm}", True),
+        (r"\p{Lo}", True),
+        (r"\p{Mn}", True),
+        (r"\p{Mc}", True),
+        (r"\p{Me}", True),
+        (r"\p{Nd}", True),
+        (r"\p{Nl}", True),
+        (r"\p{No}", True),
+        (r"\p{Pc}", True),
+        (r"\p{Pd}", True),
+        (r"\p{Ps}", True),
+        (r"\p{Pe}", True),
+        (r"\p{Pi}", True),
+        (r"\p{Pf}", True),
+        (r"\p{Po}", True),
+        (r"\p{Sm}", True),
+        (r"\p{Sc}", True),
+        (r"\p{Sk}", True),
+        (r"\p{So}", True),
+        (r"\p{Zs}", True),
+        (r"\p{Zl}", True),
+        (r"\p{Zp}", True),
+        (r"\p{Cc}", True),
+        (r"\p{Cf}", True),
+        (r"\p{Co}", True),
+        (r"\p{Cn}", True),
+        (r"\P{L}", True),
+        (r"\P{Lu}", True),
+        (r"\P{Ll}", True),
+        (r"\P{Lt}", True),
+        (r"\P{Lm}", True),
+        (r"\P{Lo}", True),
+        (r"\P{Mn}", True),
+        (r"\P{Mc}", True),
+        (r"\P{Me}", True),
+        (r"\P{Nd}", True),
+        (r"\P{Nl}", True),
+        (r"\P{No}", True),
+        (r"\P{Pc}", True),
+        (r"\P{Pd}", True),
+        (r"\P{Ps}", True),
+        (r"\P{Pe}", True),
+        (r"\P{Pi}", True),
+        (r"\P{Pf}", True),
+        (r"\P{Po}", True),
+        (r"\P{Sm}", True),
+        (r"\P{Sc}", True),
+        (r"\P{Sk}", True),
+        (r"\P{So}", True),
+        (r"\P{Zs}", True),
+        (r"\P{Zl}", True),
+        (r"\P{Zp}", True),
+        (r"\P{Cc}", True),
+        (r"\P{Cf}", True),
+        (r"\P{Co}", True),
+        (r"\P{Cn}", True),
+        ("a", True),
+        ("abc", True),
+        ("cat|dog|fish", True),
+        ("a|b|c|d|e|f|g", True),
+        ("", True),
+        ("a*", True),
+        ("a+", True),
+        ("a?", True),
+        ("a{3}", True),
+        ("a{2,5}", True),
+        ("a{0,1}", True),
+        ("a{10,}", True),
+        ("(abc)*", True),
+        ("(foo|bar)+", True),
+        ("(a?b*c+){2,4}", True),
+        ("[a-z]", True),
+        ("[a-zA-Z0-9]", True),
+        ("[^0-9]", True),
+        ("[^a-z]", True),
+        ("[-_.]", True),
+        ("[\\[\\]\\\\\\^\\-]", True),
+        ("[a-z0-9._%+-]", True),
+        (".", True),
+        ("foo\\.bar", True),
+        ("\\n\\r\\t", True),
+        ("\\|\\(\\)\\[\\]\\{\\}\\*\\+\\?\\.\\^\\\\", True),
+        ("\\p{Lu}+", True),
+        ("\\p{Ll}*", True),
+        ("\\p{Nd}{1,4}", True),
+        ("\\P{Nd}+", True),
+        ("[\\p{Lu}\\p{Ll}]", True),
+        ("[^\\p{Nd}]", True),
+        ("(19|20)[0-9]{2}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])", True),  # ISO Date
+        ("([0-9]{1,3}\\.){3}[0-9]{1,3}", True),  # Simplified IPv4
+        ("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}", True),  # Email
+        (
+            "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}",
+            True,
+        ),
+        ("((a|b)+|(c|d)*)?", True),
+        ("((([a-z])))", True),
+        (r"(?<group>[a-z]*)", False),
+        (r"\d", False),
+        (r"[\S ]", False),
+        (r"[0-9]*?", False),
+        (r"(\w)\1", False),
+        (r"(?=.*[a-z])(?=.*[A-Z])(?=.*)[a-zA-Z]{8,}", False),
+        (r"(?<=[a-z]{4})\[a-z]{2}", False),
+        (r"(?:[a-z]+)", False),
+        (r"(?>[a-z]+)", False),
+        (r"(?(1)a|b)", False),
+        (r"(?#comment)", False),
+        (r"(?i)[a-z]+", False),
+        ("\\D", False),
+        ("\\w", False),
+        ("\\W", False),
+        ("\\s", False),
+        ("\\S", False),
+        ("abc\\ddef", False),
+        ("[\\d]", False),
+        ("[a-z\\s0-9]", False),
+        ("[^]", False),
+        ("[a-z-_]", False),
+        ("abc[^]", False),
+        ("[^]abc", False),
+        ("[a-z-[aeiou]]", False),
+        ("[0-9-[5]]", False),
+        ("(", False),
+        (")", False),
+        ("(abc", False),
+        ("abc)", False),
+        ("((a|b)", False),
+        ("(a|b))", False),
+        (")(", False),
+        ("[", False),
+        ("]", False),
+        ("[a-z", False),
+        ("a-z]", False),
+        ("[a-z[b-c]", False),
+        ("\\", False),
+        ("abc\\", False),
+        ("foo\\", False),
+        ("*", False),
+        ("+", False),
+        ("?", False),
+        ("*abc", False),
+        ("+abc", False),
+        ("?abc", False),
+        ("{2}", False),
+        ("{2,4}", False),
+        ("a++", False),
+        ("a**", False),
+        ("a??", False),
+        ("a+*", False),
+        ("a{2}{3}", False),
+        ("a{}", False),
+        ("a{2", False),
+        ("a{2,4", False),
+        ("a{abc}", False),
+        ("a{,5}", False),
+        ("(?=abc)", False),
+        ("(?!abc)", False),
+        ("(?<=abc)", False),
+        ("(?<!abc)", False),
+        ("(?:abc)", False),
+        ("(?i)abc", False),
+        ("\\p", False),
+        ("\\P", False),
+        ("\\p{", False),
+        ("\\p{}", False),
+        ("\\p{L", False),
+        ("\\P{Lu", False),
+        ("abc\\p{Lu", False),
+        ("\\p{IsBasicLatin}", False),
+        ("\\a", False),
+        ("\\e", False),
+        ("\\f", False),
+        ("\\b", False),
+        ("\\z", False),
+        ("\\x20", False),
+        ("\\u0041", False),
+        ("[\\a]", False),
+    ],
 )
-def test_valid_iregexp(case: Case) -> None:
-    assert check(case.pattern)
-
-
-@pytest.mark.parametrize(
-    "case", INVALID_TEST_CASES, ids=operator.attrgetter("description")
-)
-def test_invalid_iregexp(case: Case) -> None:
-    assert not check(case.pattern)
+def test_more_iregexp(pattern: str, want: bool) -> None:
+    assert check_iregexp(pattern) == want
