@@ -37,6 +37,7 @@ Function Extensions
 .. automodule:: jsonpath_rfc9535.functions
     :members:
     :member-order: bysource
+    :show-inheritance:
 
 Exceptions
 ----------
