@@ -63,15 +63,43 @@ extra-dependencies = [
 
 
 [tool.hatch.envs.default.scripts]
-cov = "pytest --cov=jsonpath_rfc9535 tests/"
-docs-build = "sphinx-build -d .doctrees -b html docs site --fail-on-warning {args}"
+generate = "python tools/generate.py"
+generate-check = "python tools/generate.py --check"
+
+cov = [
+  "generate",
+  "pytest --cov=jsonpath_rfc9535 tests/"
+]
+
+docs-build = [
+  "generate",
+  "sphinx-build -d .doctrees -b html docs site --fail-on-warning {args}"
+]
+
 docs-deploy = [
   "docs-build",
   "ghp-import --push --force site"
 ]
-test = "pytest {args}"
-lint = "ruff check ."
-typing = "mypy src"
+
+test = [
+  "generate",
+  "pytest {args}"
+]
+
+lint = [
+  "generate",
+  "ruff check ."
+]
+
+typing = [
+  "generate",
+  "mypy src"
+]
+
+test-ci = "mypy src"
+lint-ci = "ruff check ."
+typing-ci = "mypy src"
+
 
 [tool.hatch.envs.pypy]
 template = "pypy"
@@ -81,3 +109,13 @@ dependencies = []
 [[tool.hatch.envs.all.matrix]]
 python = ["3.12", "3.13", "3.14", "3.15"]
 
+
+[tool.coverage.run]
+omit = [
+    "src/jsonpath_rfc9535/_resolver_basic.py",
+    "src/jsonpath_rfc9535/_resolver_standard.py",
+    "src/jsonpath_rfc9535/_debug.py",
+    "scripts/*",
+    "tools/*",
+    "dev.py"
+]

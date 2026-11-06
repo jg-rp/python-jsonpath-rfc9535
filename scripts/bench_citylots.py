@@ -2,7 +2,7 @@ import dataclasses
 import json
 import timeit
 
-from jsonpath_rfc9535 import compile
+from jsonpath_rfc9535 import JSONPathEnvironment
 
 
 @dataclasses.dataclass
@@ -35,13 +35,15 @@ FIXTURES: list[Fixture] = [
     ),
 ]
 
+ENV = JSONPathEnvironment(composite_types="strict")
+
 QUERIES = {
-    "shallow": compile("$.features..properties"),
-    "deep": compile("$.features..properties.BLOCK_NUM"),
-    "conditional": compile(
+    "shallow": ENV.compile("$.features..properties"),
+    "deep": ENV.compile("$.features..properties.BLOCK_NUM"),
+    "conditional": ENV.compile(
         "$.features[?@.properties.STREET=='UNKNOWN'].properties.BLOCK_NUM"
     ),
-    "regex": compile(
+    "regex": ENV.compile(
         "$.features[?match(@.properties.STREET, 'UNKNOWN')].properties.BLOCK_NUM"
     ),
 }
