@@ -66,37 +66,37 @@ class StandardResolver(Resolver_):
 
         match selector:
             case (_ast.NAME_SELECTOR, _, name):
-                if isinstance(obj, dict) and name in obj:
+                if self.env.is_object(obj) and name in obj:
                     yield self.new_child(node, name, obj[name])
 
             case (_ast.INDEX_SELECTOR, _, index):
-                if isinstance(obj, list) and len(obj) >= abs(index) + int(index >= 0):
+                if self.env.is_array(obj) and len(obj) >= abs(index) + int(index >= 0):
                     if index < 0 and len(obj) >= abs(index):
                         index = len(obj) + index
 
                     yield self.new_child(node, index, obj[index])
 
             case (_ast.SLICE_SELECTOR, _, slice_):
-                if isinstance(obj, list) and slice_.step != 0:
+                if self.env.is_array(obj) and slice_.step != 0:
                     for i, elem in zip(range(*slice_.indices(len(obj))), obj[slice_]):
                         yield self.new_child(node, i, elem)
 
             case (_ast.WILDCARD_SELECTOR, _):
-                if isinstance(obj, dict):
+                if self.env.is_object(obj):
                     for k, v in obj.items():
                         yield self.new_child(node, k, v)
 
-                elif isinstance(obj, list):
+                elif self.env.is_array(obj):
                     for i, elem in enumerate(obj):
                         yield self.new_child(node, i, elem)
 
             case (_ast.FILTER_SELECTOR, _, expr):
-                if isinstance(obj, dict):
+                if self.env.is_object(obj):
                     for k, v in obj.items():
                         if self.truthy(self._evaluate_expression(expr, k, v)):
                             yield self.new_child(node, k, v)
 
-                elif isinstance(obj, list):
+                elif self.env.is_array(obj):
                     for i, elem in enumerate(obj):
                         if self.truthy(self._evaluate_expression(expr, i, elem)):
                             yield self.new_child(node, i, elem)
@@ -203,22 +203,23 @@ class StandardResolver(Resolver_):
         max_depth = self.env.max_recursion_depth
 
         def visit_(node: Node, depth: int) -> Iterable[Node]:
-
             if depth > max_depth:
                 raise JSONPathRecursionError("recursion limit reached")
 
-            yield node
             obj = node[0]
 
-            if isinstance(obj, dict):
+            if self.env.is_object(obj):
+                yield node
+
                 for k, v in obj.items():
-                    if isinstance(k, str) and isinstance(v, (dict, list)):
+                    if isinstance(k, str):  # pyright: ignore[reportUnnecessaryIsInstance]
                         yield from visit_(self.new_child(node, k, v), depth + 1)
 
-            elif isinstance(obj, list):
+            elif self.env.is_array(obj):
+                yield node
+
                 for i, elem in enumerate(obj):
-                    if isinstance(elem, (dict, list)):
-                        yield from visit_(self.new_child(node, i, elem), depth + 1)
+                    yield from visit_(self.new_child(node, i, elem), depth + 1)
 
         return visit_(node, 1)
 

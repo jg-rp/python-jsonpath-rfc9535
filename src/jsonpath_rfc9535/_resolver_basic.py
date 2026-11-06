@@ -64,37 +64,37 @@ class BasicResolver(Resolver_):
     def _resolve_selector(self, selector: Selector, obj: object) -> Iterable[object]:
         match selector:
             case (_ast.NAME_SELECTOR, _, name):
-                if isinstance(obj, dict) and name in obj:
+                if self.env.is_object(obj) and name in obj:
                     yield obj[name]
 
             case (_ast.INDEX_SELECTOR, _, index):
-                if isinstance(obj, list) and len(obj) >= abs(index) + int(index >= 0):
+                if self.env.is_array(obj) and len(obj) >= abs(index) + int(index >= 0):
                     if index < 0 and len(obj) >= abs(index):
                         index = len(obj) + index
 
                     yield obj[index]
 
             case (_ast.SLICE_SELECTOR, _, slice_):
-                if isinstance(obj, list) and slice_.step != 0:
+                if self.env.is_array(obj) and slice_.step != 0:
                     for i, elem in zip(range(*slice_.indices(len(obj))), obj[slice_]):
                         yield elem
 
             case (_ast.WILDCARD_SELECTOR, _):
-                if isinstance(obj, dict):
+                if self.env.is_object(obj):
                     for k, v in obj.items():
                         yield v
 
-                elif isinstance(obj, list):
+                elif self.env.is_array(obj):
                     for i, elem in enumerate(obj):
                         yield elem
 
             case (_ast.FILTER_SELECTOR, _, expr):
-                if isinstance(obj, dict):
+                if self.env.is_object(obj):
                     for k, v in obj.items():
                         if self.truthy(self._evaluate_expression(expr, k, v)):
                             yield v
 
-                elif isinstance(obj, list):
+                elif self.env.is_array(obj):
                     for i, elem in enumerate(obj):
                         if self.truthy(self._evaluate_expression(expr, i, elem)):
                             yield elem
@@ -204,20 +204,20 @@ class BasicResolver(Resolver_):
         max_depth = self.env.max_recursion_depth
 
         def visit_(obj: object, depth: int) -> Iterable[object]:
-
             if depth > max_depth:
                 raise JSONPathRecursionError("recursion limit reached")
 
-            yield obj
+            if self.env.is_object(obj):
+                yield obj
 
-            if isinstance(obj, dict):
                 for k, v in obj.items():
-                    if isinstance(k, str) and isinstance(v, (list, dict)):
+                    if isinstance(k, str):  # pyright: ignore[reportUnnecessaryIsInstance]
                         yield from visit_(v, depth + 1)
 
-            elif isinstance(obj, list):
+            elif self.env.is_array(obj):
+                yield obj
+
                 for elem in obj:
-                    if isinstance(elem, (dict, list)):
-                        yield from visit_(elem, depth + 1)
+                    yield from visit_(elem, depth + 1)
 
         return visit_(node, 1)

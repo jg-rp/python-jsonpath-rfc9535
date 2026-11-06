@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from collections.abc import Iterable
-from typing import TYPE_CHECKING
+from collections.abc import Iterable, Mapping, Sequence
+from typing import TYPE_CHECKING, TypeGuard
 
 from . import functions
 from ._node import JSONPathNode, JSONPathNodeList
@@ -237,3 +237,11 @@ class JSONPathEnvironment:
         search
         """
         return self.parser.parse(self, expr).find_one(data)
+
+    def is_object(self, obj: object) -> TypeGuard[Mapping[str, object]]:
+        """Return True if `obj` is considered a JSON object."""
+        return isinstance(obj, dict)
+
+    def is_array(self, obj: object) -> TypeGuard[Sequence[object]]:
+        """Return True if `obj` is considered a JSON array."""
+        return isinstance(obj, list)
