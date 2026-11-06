@@ -2,10 +2,11 @@
 
 ## Version 2.1.0 (unreleased)
 
-- Added support PyPy 3.12 (as a result of removing the iregexp-check dependency).
+- Added support for PyPy 3.12 (as a result of removing the iregexp-check dependency).
 - Removed the iregexp-check dependency in favour of our own faster and more correct implementation.
 - Added an `escape_anchors` argument to `jsonpath_rfc9535.functions.Match` and `jsonpath_rfc9535.functions.Search` for controlling `^` and `$` behavior in regular expression patterns.
-- Added non-standard versions of the `match` and `search` functions for anyone who wants to opt out of I-Regexp validation and mapping. `jsonpath_rfc9535.functions.PyMatch` and `jsonpath_rfc9535.functions.PySearch` use Python's built-in `re` module.
+- Added non-standard versions of the `match` and `search` functions for anyone who wants to opt out of I-Regexp validation and mapping altogether. `jsonpath_rfc9535.functions.PyMatch` and `jsonpath_rfc9535.functions.PySearch` use Python's built-in `re` module.
+- Added the `composite_types` argument to the `JSONPathEnvironment` constructor. In order from fastest to slowest, `composite_types` can be one of `"strict"`, `"native"` or `"abstract"`. Strict type detection works with data composed of `list` and `dict` instances. Native type detection works with data composed of lists, dicts and list/dict subclasses. And abstract type detection works with data composed of Mapping and Sequence types.
 
 ## Version 2.0.2
 

@@ -7,8 +7,8 @@
 # pyright: reportUnknownMemberType=false
 from __future__ import annotations
 
-from collections.abc import Iterable, Sequence
-from typing import TYPE_CHECKING
+from collections.abc import Iterable, Mapping, Sequence
+from typing import TYPE_CHECKING, TypeGuard
 
 from . import _ast
 from ._ast import *
@@ -21,10 +21,14 @@ from .functions import NODES_TYPE
 if TYPE_CHECKING:
     from ._environment import JSONPathEnvironment
 
+    def IS_JSON_OBJECT(obj: object) -> TypeGuard[Mapping[str, object]]: ...
+    def IS_JSON_ARRAY(obj: object) -> TypeGuard[Sequence[object]]: ...
+    def IS_JSON_COMPOSITE(
+        obj: object,
+    ) -> TypeGuard[Sequence[object] | Mapping[str, object]]: ...
+
 
 class BasicResolver(Resolver_):
-    """A memory efficient JSONPath evaluator that does not track node locations."""
-
     __slots__ = ("env", "root")
 
     def __init__(self, env: JSONPathEnvironment, root: object) -> None:
@@ -64,37 +68,37 @@ class BasicResolver(Resolver_):
     def _resolve_selector(self, selector: Selector, obj: object) -> Iterable[object]:
         match selector:
             case (_ast.NAME_SELECTOR, _, name):
-                if isinstance(obj, dict) and name in obj:
+                if IS_JSON_OBJECT(obj) and name in obj:
                     yield obj[name]
 
             case (_ast.INDEX_SELECTOR, _, index):
-                if isinstance(obj, list) and len(obj) >= abs(index) + int(index >= 0):
+                if IS_JSON_ARRAY(obj) and len(obj) >= abs(index) + int(index >= 0):
                     if index < 0 and len(obj) >= abs(index):
                         index = len(obj) + index
 
                     yield obj[index]
 
             case (_ast.SLICE_SELECTOR, _, slice_):
-                if isinstance(obj, list) and slice_.step != 0:
+                if IS_JSON_ARRAY(obj) and slice_.step != 0:
                     for i, elem in zip(range(*slice_.indices(len(obj))), obj[slice_]):
                         yield elem
 
             case (_ast.WILDCARD_SELECTOR, _):
-                if isinstance(obj, dict):
+                if IS_JSON_OBJECT(obj):
                     for k, v in obj.items():
                         yield v
 
-                elif isinstance(obj, list):
+                elif IS_JSON_ARRAY(obj):
                     for i, elem in enumerate(obj):
                         yield elem
 
             case (_ast.FILTER_SELECTOR, _, expr):
-                if isinstance(obj, dict):
+                if IS_JSON_OBJECT(obj):
                     for k, v in obj.items():
                         if self.truthy(self._evaluate_expression(expr, k, v)):
                             yield v
 
-                elif isinstance(obj, list):
+                elif IS_JSON_ARRAY(obj):
                     for i, elem in enumerate(obj):
                         if self.truthy(self._evaluate_expression(expr, i, elem)):
                             yield elem
@@ -204,20 +208,19 @@ class BasicResolver(Resolver_):
         max_depth = self.env.max_recursion_depth
 
         def visit_(obj: object, depth: int) -> Iterable[object]:
-
             if depth > max_depth:
                 raise JSONPathRecursionError("recursion limit reached")
 
             yield obj
 
-            if isinstance(obj, dict):
-                for k, v in obj.items():
-                    if isinstance(k, str) and isinstance(v, (list, dict)):
-                        yield from visit_(v, depth + 1)
+            if IS_JSON_OBJECT(obj):
+                for key, val in obj.items():
+                    if isinstance(key, str) and IS_JSON_COMPOSITE(val):
+                        yield from visit_(val, depth + 1)
 
-            elif isinstance(obj, list):
-                for elem in obj:
-                    if isinstance(elem, (dict, list)):
-                        yield from visit_(elem, depth + 1)
+            elif IS_JSON_ARRAY(obj):
+                for val in obj:
+                    if IS_JSON_COMPOSITE(val):
+                        yield from visit_(val, depth + 1)
 
         return visit_(node, 1)

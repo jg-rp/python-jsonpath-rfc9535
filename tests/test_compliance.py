@@ -1,5 +1,6 @@
 import json
 import operator
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 
 import pytest
@@ -28,11 +29,26 @@ with open("tests/cts/cts.json", encoding="utf8") as fd:
 
 @pytest.mark.parametrize(
     "case",
+    [c for c in TEST_CASES if c.invalid_selector],
+    ids=operator.attrgetter("name"),
+)
+def test_invalid_selectors(case: Case) -> None:
+    with pytest.raises(jsonpath.JSONPathError):
+        jsonpath.parse(case.selector)
+
+
+@pytest.fixture(scope="session", params=["strict", "native", "abstract"])
+def env(request: pytest.FixtureRequest) -> Iterable[jsonpath.JSONPathEnvironment]:
+    yield jsonpath.JSONPathEnvironment(composite_types=request.param)
+
+
+@pytest.mark.parametrize(
+    "case",
     [c for c in TEST_CASES if not c.invalid_selector],
     ids=operator.attrgetter("name"),
 )
-def test_compliance(case: Case) -> None:
-    nodes = jsonpath.find(case.selector, case.document)
+def test_basic_compliance(env: jsonpath.JSONPathEnvironment, case: Case) -> None:
+    nodes = env.find(case.selector, case.document)
 
     if case.results is not None:
         assert isinstance(case.results_paths, list)
@@ -42,24 +58,7 @@ def test_compliance(case: Case) -> None:
         assert nodes.values() == case.result
         assert nodes.paths() == case.result_paths
 
-
-@pytest.mark.parametrize(
-    "case",
-    [c for c in TEST_CASES if c.invalid_selector],
-    ids=operator.attrgetter("name"),
-)
-def test_invalid_selectors(case: Case) -> None:
-    with pytest.raises(jsonpath.JSONPathError):
-        jsonpath.parse(case.selector)
-
-
-@pytest.mark.parametrize(
-    "case",
-    [c for c in TEST_CASES if not c.invalid_selector],
-    ids=operator.attrgetter("name"),
-)
-def test_basic_compliance(case: Case) -> None:
-    values = jsonpath.findall(case.selector, case.document)
+    values = env.findall(case.selector, case.document)
 
     if case.results is not None:
         assert isinstance(case.results_paths, list)
