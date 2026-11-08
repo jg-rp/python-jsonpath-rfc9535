@@ -119,7 +119,7 @@ def main() -> int:
     args = parser.parse_args()
 
     package_dir = ROOT / "src" / "jsonpath_rfc9535"
-    stale_files = []
+    stale_files: list[str] = []
 
     for template_name, class_name in TEMPLATES:
         template_stem = Path(template_name).stem

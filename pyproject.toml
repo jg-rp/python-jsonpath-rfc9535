@@ -96,7 +96,11 @@ typing = [
   "mypy src"
 ]
 
-test-ci = "mypy src"
+test-ci = [
+  "generate-check",
+  "pytest {args}"
+]
+
 lint-ci = "ruff check ."
 typing-ci = "mypy src"
 

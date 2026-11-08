@@ -45,6 +45,16 @@ $ hatch run cov
 
 Then open `htmlcov/index.html` in your browser.
 
+### Code generation
+
+For performance reasons, we use `tools/generate.py` to generate multiple versions of `src/jsonpath_rfc9535/_resolver_basic.py` and `src/jsonpath_rfc9535/_resolver_standard.py` with hard coded data type checks.
+
+`generate.py` is run automatically before `hatch run test`, but not when running `pytest` directly.
+
+Generated files must be committed to Git and included in package builds.
+
+Generated files must not be edited directly.
+
 ## Documentation
 
 Documentation lives in the `docs` directory and is built with Sphinx. Build it to the `site` directory with:
