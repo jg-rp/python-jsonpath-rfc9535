@@ -134,27 +134,25 @@ def _check_char_class(pattern: str, pos: int, length: int) -> int:
 
         # Optional trailing '-' right before ']'
         if ch == "-" and pos + 1 < length and pattern[pos + 1] == "]":
-            return (pos + 2) if has_item else -1
+            return pos + 2
 
         # Parse CCE1 atom
-        next_pos, is_cc = _parse_cc_atom(pattern, pos, length)
-        if next_pos == -1:
+        pos, is_cc = _parse_cc_atom(pattern, pos, length)
+        if pos == -1:
             return -1
 
         has_item = True
-        pos = next_pos
 
         # Check for range: CCchar "-" CCchar
         if is_cc and pos < length and pattern[pos] == "-":
             if pos + 1 < length and pattern[pos + 1] == "]":
                 # Trailing '-'
                 return pos + 2
-            else:
-                pos += 1  # Skip range '-'
-                next_pos_2, is_cc_2 = _parse_cc_atom(pattern, pos, length)
-                if next_pos_2 == -1 or not is_cc_2:
-                    return -1
-                pos = next_pos_2
+
+            pos += 1  # Skip range '-'
+            pos, is_cc = _parse_cc_atom(pattern, pos, length)
+            if pos == -1 or not is_cc:
+                return -1
 
     return -1
 
@@ -174,26 +172,26 @@ def _parse_cc_atom(pattern: str, pos: int, length: int) -> tuple[int, bool]:
         if esc in _ALLOWED_SINGLE_CHAR_ESCAPES:
             return pos + 2, True  # SingleCharEsc is a valid CCchar
 
-        elif esc in "pP":
+        if esc in "pP":
             if pos + 2 >= length or pattern[pos + 2] != "{":
                 return -1, False
+
             close_b = pattern.find("}", pos + 3)
             if close_b == -1:
                 return -1, False
-            prop = pattern[pos + 3 : close_b]
-            if prop not in _VALID_UNICODE_CATEGORIES:
+
+            if pattern[pos + 3 : close_b] not in _VALID_UNICODE_CATEGORIES:
                 return -1, False
+
             return (close_b + 1, False)
 
-        else:
-            return -1, False
+        return -1, False
 
-    elif ch in "-[]":
+    if ch in "-[]":
         # Unescaped '-', '[', and ']' are excluded from CCchar
         return -1, False
 
-    else:
-        return pos + 1, True
+    return pos + 1, True
 
 
 def _check_escape(pattern: str, pos: int, length: int) -> int:
