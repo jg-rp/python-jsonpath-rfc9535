@@ -7,7 +7,7 @@
         <link rel="prefetch" href="_static/jsonpath_rfc9535_light.png" as="image">
         <link rel="prefetch" href="_static/jsonpath_rfc9535_dark.png" as="image">
 
-    <!-- Generated with Sphinx 9.1.0 and Furo 2025.12.19 -->
+    <!-- Generated with Sphinx 9.2.0 and Furo 2025.12.19 -->
         <title>Quick Start - jsonpath_rfc9535 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=d111a655" />
     <link rel="stylesheet" type="text/css" href="_static/styles/furo.css?v=7bdb33bb" />
@@ -297,7 +297,7 @@
 <span class="c1"># $['users'][2]['name'] -&gt; Charlie</span>
 </pre></div>
 </div>
-<p><code class="docutils literal notranslate"><span class="pre">find()</span></code> returns a <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> subclass, <a class="reference internal" href="api.html#jsonpath_rfc9535.JSONPathNodeList" title="jsonpath_rfc9535.JSONPathNodeList"><code class="xref py py-class docutils literal notranslate"><span class="pre">jsonpath_rfc9535.JSONPathNodeList</span></code></a>, with methods for retrieving all values, locations or normalized paths for the entire list of nodes.</p>
+<p><code class="docutils literal notranslate"><span class="pre">find()</span></code> returns a <a class="reference external" href="https://docs.python.org/3/builtins/stdtypes.html#list" title="(in Python v3.15)"><code class="xref py py-class docutils literal notranslate"><span class="pre">list</span></code></a> subclass, <a class="reference internal" href="api.html#jsonpath_rfc9535.JSONPathNodeList" title="jsonpath_rfc9535.JSONPathNodeList"><code class="xref py py-class docutils literal notranslate"><span class="pre">jsonpath_rfc9535.JSONPathNodeList</span></code></a>, with methods for retrieving all values, locations or normalized paths for the entire list of nodes.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ... continued from above</span>
 
 <span class="n">nodes</span> <span class="o">=</span> <span class="n">jsonpath</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
@@ -377,7 +377,7 @@
     <span class="n">node</span> <span class="o">=</span> <span class="kc">None</span>
 </pre></div>
 </div>
-<p>You could easily take, say, the first 5 nodes using <a class="reference external" href="https://docs.python.org/3/library/itertools.html#itertools.islice" title="(in Python v3.14)"><code class="xref py py-func docutils literal notranslate"><span class="pre">islice()</span></code></a>.</p>
+<p>You could easily take, say, the first 5 nodes using <a class="reference external" href="https://docs.python.org/3/library/itertools.html#itertools.islice" title="(in Python v3.15)"><code class="xref py py-func docutils literal notranslate"><span class="pre">islice()</span></code></a>.</p>
 <div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># ... continued from above</span>
 
 <span class="n">it</span> <span class="o">=</span> <span class="n">islice</span><span class="p">(</span><span class="n">jsonpath</span><span class="o">.</span><span class="n">finditer</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">data</span><span class="p">),</span> <span class="mi">5</span><span class="p">)</span>
