@@ -31,6 +31,16 @@ API Docs
 
 .. autofunction:: jsonpath_rfc9535.map_iregexp
 
+Query resolvers
+---------------
+
+.. autoclass:: jsonpath_rfc9535.BasicResolverStrict
+.. autoclass:: jsonpath_rfc9535.BasicResolverNative
+.. autoclass:: jsonpath_rfc9535.BasicResolverAbstract
+.. autoclass:: jsonpath_rfc9535.StandardResolverStrict
+.. autoclass:: jsonpath_rfc9535.StandardResolverNative
+.. autoclass:: jsonpath_rfc9535.StandardResolverAbstract
+
 Function Extensions
 -------------------
 

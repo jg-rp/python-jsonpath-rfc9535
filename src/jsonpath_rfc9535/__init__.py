@@ -8,6 +8,12 @@ from ._iregexp import check_iregexp, map_iregexp
 from ._node import JSONPathNode, JSONPathNodeList, Node, NodeList
 from ._parser import Parser, Parser_
 from ._parser_standard import StandardParser
+from ._resolver_basic_abstract import BasicResolverAbstract
+from ._resolver_basic_native import BasicResolverNative
+from ._resolver_basic_strict import BasicResolverStrict
+from ._resolver_standard_abstract import StandardResolverAbstract
+from ._resolver_standard_native import StandardResolverNative
+from ._resolver_standard_strict import StandardResolverStrict
 from .exceptions import (
     DetailedJSONPathError,
     JSONPathError,
@@ -31,6 +37,9 @@ __all__ = (
     "LOGICAL_TYPE",
     "NODES_TYPE",
     "VALUE_TYPE",
+    "BasicResolverAbstract",
+    "BasicResolverNative",
+    "BasicResolverStrict",
     "DetailedJSONPathError",
     "ExpressionType",
     "FunctionExtension",
@@ -49,6 +58,9 @@ __all__ = (
     "Parser",
     "Parser_",
     "StandardParser",
+    "StandardResolverAbstract",
+    "StandardResolverNative",
+    "StandardResolverStrict",
     "check_iregexp",
     "map_iregexp",
     "parse",

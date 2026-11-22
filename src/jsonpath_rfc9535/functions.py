@@ -240,7 +240,7 @@ class CachingReFunction(FunctionExtension):
         if pattern_ is None:
             try:
                 pattern_ = re.compile(pattern)
-            except re.PatternError as err:
+            except re.error as err:
                 self.cache[pattern] = self.INVALID_PATTERN
                 return self._debug_or_false(str(err))
 

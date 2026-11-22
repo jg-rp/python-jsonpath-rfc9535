@@ -1,15 +1,22 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from . import functions
 from ._node import JSONPathNode, JSONPathNodeList
 from ._parser import Parser
 from ._parser_standard import StandardParser
+from ._resolver_basic_abstract import BasicResolverAbstract
+from ._resolver_basic_native import BasicResolverNative
+from ._resolver_basic_strict import BasicResolverStrict
+from ._resolver_standard_abstract import StandardResolverAbstract
+from ._resolver_standard_native import StandardResolverNative
+from ._resolver_standard_strict import StandardResolverStrict
 from .query import JSONPathQuery
 
 if TYPE_CHECKING:
+    from ._resolver import BasicResolver, Resolver
     from .functions import FunctionExtension
 
 
@@ -29,8 +36,15 @@ class JSONPathEnvironment:
         The maximum depth the descendant segment can go before a `JSONPathRecursionError`
         is raised.
     parser
-        The JSONPath query parser to use. You can subclass `StandardParser` to customize
-        JSONPath parsing behavior.
+        The JSONPath query parser to use. You can subclass ``StandardParser`` to
+        customize JSONPath parsing behavior.
+    composite_types
+        One of ``"strict"``, ``"native"`` or ``"abstract"``.
+
+        In order from fastest to slowest, the strict strategy works with data composed of
+        :class:`list` and :class:`dict` instances. The native strategy works with data
+        composed of lists, dicts and list/dict subclasses. And the abstract strategy
+        works with data composed of Mapping and Sequence types.
 
     Attributes
     ----------
@@ -47,6 +61,7 @@ class JSONPathEnvironment:
         max_recursion_depth: int = 100,
         max_expression_depth: int = 30,
         parser: Parser = StandardParser,
+        composite_types: Literal["strict", "native", "abstract"] = "native",
     ) -> None:
 
         self.max_recursion_depth = max_recursion_depth
@@ -55,6 +70,16 @@ class JSONPathEnvironment:
         self.min_index = min_index
 
         self.parser: Parser = parser
+
+        if composite_types == "strict":
+            self.resolver: Resolver = StandardResolverStrict
+            self.basic_resolver: BasicResolver = BasicResolverStrict
+        elif composite_types == "native":
+            self.resolver = StandardResolverNative
+            self.basic_resolver = BasicResolverNative
+        else:
+            self.resolver = StandardResolverAbstract
+            self.basic_resolver = BasicResolverAbstract
 
         self.functions: dict[str, FunctionExtension] = {
             "count": functions.Count(),
