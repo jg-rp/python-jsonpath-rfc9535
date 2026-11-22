@@ -1,6 +1,6 @@
 # Python JSONPath RFC 9535 Change Log
 
-## Version 2.1.0 (unreleased)
+## Version 2.1.0
 
 - Added support for PyPy 3.12 (as a result of removing the iregexp-check dependency).
 - Removed the iregexp-check dependency in favour of our own faster and more correct implementation.
